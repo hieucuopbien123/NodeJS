@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.io Freetuts.net</title>
+</head>
+
+<body>
+    <button id="joinRoom">Vào phòng</button>
+    <button id="leaveRoom">Rời phòng</button>
+    <div id="notification"></div>
+</body>
+
+<!-- Thêm thư viện socket.io mà server cung cấp và jQuery -->
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<script>
+    // Khởi tạo kết nối 
+    var socket = io('/freetuts', { // Lấy socket client từ phía server trong namespace freetuts
+        reconnectionDelayMax: 10000
+    }); // io(<tên namespace>, options object)
+    $('#joinRoom').click(function () {
+        socket.emit('join room', '')
+    })
+    $('#leaveRoom').click(function () {
+        socket.emit('leave room', '')
+    })
+    socket.on('notification', function (data) {
+        console.log(data)
+        $('#notification').append(`<p>${data}</p><br>`)
+    })
+
+    // Error handling phía client: Mặc định khi bị ngắt kết nối tới server, socket.io bên phía clients sẽ 
+    // kết nối lại liên tuc cho đến khi kết nối thành công. Ta có thể kiểm soát bằng các signal tự động.
+    socket.on('connect_failed', function () {
+        document.write("Xảy ra lỗi kết nối");
+    })
+    // connect− Khi kết nối thành công
+    // connecting− Khi clients đang kết nối
+    // disconnect− Khi clients bị ngắt kết nối tới server
+    // connect_failed− Kết nối xảy ra lỗi.
+    // error− Khi quá trình gửi event gửi tới server bị lỗi
+    // message− Khi server gửi tin qua send
+    // reconnect− Khi đã kết nối lại thành công.
+    // reconnecting− Khi đang kết nối lại
+    // reconnect_failed− Khi kết nối lại bị lỗi.
+</script>
+
+</html>

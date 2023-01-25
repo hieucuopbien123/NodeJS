@@ -1,0 +1,188 @@
+Dùng redis
+Redis(Remote Dictionay Server) là kho dữ liệu trong bộ nhớ làm cơ sở dữ liệu, bộ nhớ đệm, trình chuyển tiếp tin nhắn và danh sách tác vụ chờ xử lý. Nó là kho dữ liệu key-value trong bộ nhớ, mã nguồn mở tốc độ truy cập nhanh.
+Nó cho thực hiện hàng triệu yêu cầu mỗi giây cho nhiều ứng dụng.
+Redis v5 là phiên bản mới phát triển từ 1 công nghệ lưu trữ bộ đệm thành 1 kho lưu trữ cực nhanh với cấu trúc linh hoạt.
+Cấu trúc dữ liệu rất linh hoạt chứ k chỉ key-val đơn giản có giới hạn. VD: HyperLogLogs là 1 cấu trúc dữ liệu xác suất để ước tính các thành phần duy nhất trong một tập dữ liệu hay Mã hash là một cấu trúc dữ liệu dùng để lưu trữ danh sách các trường và giá trị.
+
+Redis và Memcached đều là kho lưu dữ liệu. Memcached là dịch vụ bộ nhớ đệm hiệu năng cao, thiết kế đơn giản còn Redis cung cấp nhiều tính năng phù hợp cho nhiều TH sử dụng khác nhau. 
+
+
+
+# Basic
+Redis thg dùng như database lưu dữ liệu, bộ nhớ cache, message realtime
+
+-> Toàn bộ data của Redis nằm trong bộ nhớ chính của máy chủ, trái với cơ sở dữ liệu thường lưu trên ô đĩa or SSD. K cần truy cập ổ đĩa nên có thể thao tác nhanh hơn. Cấu trúc dữ liệu linh hoạt, dùng ngôn ngữ kich bản Lua, lưu trữ lâu dài được trên ổ đĩa. 
+
+Redis có thể nhớ đệm kết quả truy vấn, trang web, các đối tượng thường sử dụng để tăng hiệu suất truy vấn, dễ dàng thay đổi quy mô mà k tốn chi phí cho vc tăng phần backend. Redis hỗ trợ Pub/Sub(cấu trúc gửi nhận tin nhắn trong đó người gửi và người nhận k biết nhau) giúp tạo các phòng chat hiệu suất cao, bình luận thời gian thực. Cấu trúc dữ liệu danh sách của redis cung cấp atomic operation. Các nhà phát triển game dùng redis để xây dựng bảng xép hạng theo thời gian thực bằng cấu trúc dữ liệu tập được sắp xếp của redis. Redis là kho lưu trữ và quản lý dữ liệu phiên cho các ứng dụng internet. Có thể dùng Redis để quản lý dữ liệu không gian địa lý, machine learning vì tốc độ truy cập phải cực nhanh. Hỗ trợ nhiều ngôn ngữ.
+
+-> Cài với docker: 
+Ta có thể dùng luôn cloud redis như mongodb
+Redis k hỗ trợ chính thức trên window(kiểu ứng dụng rời) nên nếu muốn dùng phải chạy máy ảo linux trên window để chạy redis(WSL ubuntu trên window). Các bản dùng redis trên window trực tiếp đều là các bản unofficial k nên sử dụng => Ta có thể dùng docker chạy redis trên ubuntu container và ánh xạ vào cổng redis ở trong với công ở ngoài nhưng chạy docker trên window sida lắm.
+=> docker run -p 6379:6379 -d --name redis-name redis:latest
+Lệnh chạy container sẽ tự thực hiện pull images nếu image đó k có nên như này phát là chạy được luôn
+Đúng quy trình: docker pull redis -> docker run --name myredis -p 6379:6379 -d redis => dùng redis client bình thường tại công 6379
+=> Nhưng docker trên window sida ta k thể attach được, muốn tương tác cmd phải tạo tiến trình mới: docker exec -it redis-name sh -> gõ ping thì nó bảo là k có nhưng cài nó bằng utils-ping thì nó lại lỗi, nên là ta mặc kệ chỉ cần biết nó chạy container ở cổng 6379, thế là có 1 server redis rồi, bh chỉ cần thao tác connect vào công đó là được => dùng docker với wsl trên window sẽ ok hết
+
+-> Khi dùng redis buộc phải có 1 redis server được chạy trên 1 cổng. Vc ta dùng npm trong code nodejs hay cli đều chỉ tạo ra redis client thôi, muốn tương tác dùng được vẫn phải có 1 redis server, nếu k sẽ báo lỗi:
+--> Cài package với npm: 
+npm install redis
+
+=> set, setnx là atomic, incrBy và decrBy cũng là atomic,.. Dù atomic đưa các cục khác vào hàng đợi nhưng core single-threaded siêu nhanh
+
+--> Cài redis thao tác với cmd:
+npm install -g redis-cli -> mở bằng lệnh: rdcli
+=> Để thao tác với redis-cli trên VSC terminal luôn => có thể phải reset hay chờ 1 lúc mới connect được rdcli -> để vào terminal của redis. Nó như 1 layer database bao bọc lên database gốc ở phía server.
+
+=> Để dùng: chạy redis server trên docker ở 1 cổng. Chạy redis client ở trong ứng dụng gọi vào cổng đó. Trong dự án thực tế, redis server và redis client ở 2 máy khác nhau và truyền url chứ kp 1 host nhưng khác port thế này
+
+---> Lệnh:
+SET "kavin" 123 
+GET "kavin" => sẽ trả lại 123 cho ta
+ping => nhận lại PONG tức connect ok
+KEYS * => nhận lại tất cả các key trong redis hiện tại
+SUBSCRIBE <tên channel>
+PUBLISH redisChat "This is a message"
+SETEX <key> <timeout> "<value>"
+TTL <key> -> lấy timeout
+GET <key> -> lấy giá trị
+SETNX <key> "<value>" => key k tồn tại thì set là value, nếu key tồn tại r thì thôi, tức là Set if Not eXist
+DEL <key>
+
+-> Dùng redis
+Khi cache với redis có thể thấy tốc độ gần như tức thời kể từ lần request thứ 2 trở đi và các request này có thể lấy dù server mất kết nối với database. Còn vấn đề nếu 1 data thường xuyên bị thay đổi thì vc lưu cache có thể gây lỗi thì sao ? => Thật ra là fix được hết. Nếu data thay đổi chỉ trong vài giây thì tốt nhất cứ query bth, nhưng nếu data thay đổi lâu hơn thì vẫn có thể sửa lại redis cache lúc update được nên có thể đảm bảo dữ liệu get được luôn là mới nhất
+
+Cache data có thể tốn bộ nhớ để lưu thêm cache dù k nhiều mấy. Nếu data được cache chỉ dùng đúng 1 lần thì vc cache thậm chí còn gây chậm trễ cho ứng dụng. Phải đảm bảo cache xóa sau 1 khoảng thời gian cần thiết để tránh phí bộ nhớ. Data sử dụng nhiều thay đổi ít thì dùng cache
+
+
+
+
+# 3 sự số cache: cache avalanche(sự cố tuyết lở), cache breakdown(sự cố sụp đổ), cache penetration(sự cố thâm nhập). 
+-> Cache avalanche khi số lượng lớn dữ liệu hết hạn cùng lúc hay redis đột ngột chết. Hàng loạt các request cho các data hết hạn thực hiện cùng lúc vào database trực tiếp làm tăng lưu lượng request vào database đột ngột.
+Ta có thể fix: thêm 1 số ngẫu nhiên vào thời gian hết hạn của dữ liệu để đảm bảo nó k hết hạn cùng lúc.
+Ta có thể fix bằng mutex: Khi 1 người dùng truy cập data mà k có trong redis thì mutex sẽ đảm bảo chỉ 1 yêu cầu sẽ đọc từ database và cập nhập lên redis. Ta làm v với mọi request đọc từ database để mọi thứ ghi vào redis sẽ lần lượt và hết hạn cùng time sẽ lần lượt nhau chứ k dồn cùng 1 lúc. 
+Fix bằng cách cập nhập bộ nhớ cache trong background: tầm nửa đêm mấy ô sẽ tính toán xem dữ liệu nào được người dùng sử dụng nhiều vì tầm này ít người online. Mấy ô dev VN sẽ cho update lại cache or thường xuyên kiểm tra xem cache có hợp lệ không vì nhiều lúc hệ thống bị căng và loại bỏ giá trị chưa hết hạn vì v phải cập nhập lại ngay. Nếu k thì dữ liệu người dùng thu được sẽ là rỗng.
+
+2) Cache breakdown: chỉ hơi khác cache avalanche 1 xíu. Là 1 cái hot key nào đó được truy cập cùng 1 lúc đồng thời quá nhiều lần làm cho cache bị breakdown. 1 lượng lớn concurrency request cùng truy cập vào 1 điểm sẽ break cache và chuyển hướng sang database làm hỏng.
+Fix bằng cách gạt cầu chì: khi đó cache trả ra giá trị rỗng đảm bảo người dùng nhận thông báo lỗi trực tiếp, giảm áp lực truy cập cơ sở dữ liệu và đảm bảo hệ thống vẫn chạy bình thường ở các khu vực khác. Khi đó request của người dùng k đến database nx. Đợi redis khắc phục thì lại khởi động lại. Vc gạt cầu chì là quyền giúp bảo vệ cơ sở dữ liệu, tất cả dịch vụ k thể hoạt động bình thường. Tuy nhiên nếu hệ thống ngưng hẳn có thể ảnh hưởng đến vấn đề kinh doanh nên ta có thể bật cơ chế giới hạn luồng để đảm bảo dù có 1 tỷ request tới database thì chỉ có 1 lượng vừa đủ chạy tới database thôi để xử lý, đống còn lại đưa vào hàng đợi or báo lỗi(lỗi đi chứ hàng đợi thì lâu quá họ thoát mẹ web r) để giảm tác động về kinh tế tới mức tối đa. Tức là thay vì sập hẳn hệ thống thì vẫn cho 1 lượng request từ từ qua chờ cho redis trở lại.
+PP gạt cầu chì chỉ là tạm thời, ta có thể dùng cache cluster có độ tin cậy cao của bộ nhớ cache redis bằng nhiều khung có sẵn như master-slave hay sentinel. VD setup replica cho mongodb chẳng hạn
+Các data hot thì nên để never expire và refresh thường xuyên.
+Khi dùng redis thì request đầu tiên sẽ lâu hơn và chưa update database nên ta k thể để tất cả cùng gọi vào database được. VD 1000 request gọi cùng lúc thì ta dùng mutex lock request khi gọi vào database. request đầu tiên gọi xong thì lưu vào cache và unlock mutex, các request sau thấy cache có rồi sẽ k gọi vào database nx. Chứ nếu k request mất 1s cơ thì tất cả vào cùng lúc đều thấy cache chưa có mà gọi vào database hết thì bốc cức.
+Fix cụ thể bằng mutex:
+const getData = async get(key) => {
+    String value = redis.get(key);
+    if (value == null) { // neu cache = null
+        if (redis.setnx(key_mutex, 1, 3 * 60) == 1) { // Nếu key chưa tồn tại thì set cho nó, lưu max 3 phút thôi
+            value = db.get(key); // lay từ db
+            redis.set(key, value, expiretime); // set cache
+            redis.del(key_mutex); // xoa mutex di
+        } else {  // Lúc này có nghĩa là các luồng khác cùng lúc đã tải db và đặt lại vào bộ nhớ đệm, lúc này bạn hãy thử lấy lại giá trị trong cache
+            sleep(50);
+            get(key);  // gọi recursive lại
+        }
+    } else {
+        return value;
+    }
+}
+=> 1000 người cùng vào thì người sớm nhất chạy setnx sẽ block tất cả các người khác ở ngoài. Người 1 set xong và chạy xuống if, 999 người còn lại chạy vào else. Người 1 sẽ lấy database và update dữ liệu, 999 người còn lại chờ 50ms lúc đó người 1 đã xong r thì 999 người đó get được dữ liệu. những người vào sau 1000 người đó sẽ k chạy vào vòng if value==null nx mà lấy được giá trị luôn vì nó được set r. Có những người ở trong if value == null nhưng đúng lúc đó thì cái 1 del xong. Khi đó, giả sử 600 người này chưa kịp đi vào if thì chỉ 1 người đi vào, 599 người sẽ đi tiếp đệ quy. Nch là ok
+
+3) Cache penetration: Khi attacker request data liên tục database cố tình yêu cầu các data mà nó k có. VD tạo ra 1 triệu request vào database toàn request data lạ mà databse k có
+Chính vì v ta kbh được tin những thứ gì có thể đến từ front-end. Nên phải fix bằng cách verify nó ở backend.
+Do attacker request với key lạ mà giá trị k tồn tại nên k lưu trong cache, ta chỉ cần set nếu giá trị k tồn tại thì vẫn lưu trong cache là null thì gửi 1 triệu request như nhau về database thì sẽ bị chặn, nhớ có expiration time. Nhưng nếu 1 triệu request khác nhau cơ thì chưa ngăn được, buộc bắt chặn ip người dùng.
+VD cụ thể: người dùng truy cập vào sản phẩm có id = -1 k tồn tại chẳng hạn, ta có thể check ngay ở front-end:
+const {id, token} = body;
+if(id <= 0){
+    return; // chặn ngay ở đây khỏi xuống cache và db luôn
+}
+Nhưng request kp lúc nào cx cơ bản như v, do đó ta chỉ check 1 vài đk k thỏa mãn thì báo lỗi custom, điều quan trọng là phải check nếu thoả mãn thì mới thực hiện cơ. Phía backend cx đảm bảo k gây áp lực sang database:
+let value = redis.getKey('key'); // check xem cache co data khong?
+if(!value){ // neu khong
+    value = await db.getKey('key'); // check xem db co data không
+    if(!value){ // neu khong
+        redis.setKey('key', null, 30000); // set = null
+    }
+}
+return value;
+=> Ở đây set là 30s vì lâu quá lỡ may sau này database có đúng trường đó thì bỏ mịa. Hoặc khi update database trường mới, ta reset lại cache để tránh lỗi
+=> Chuẩn hơn ta nghĩ là: request tới nếu k có trong cache thì gán null luôn -> xong request databse -> database k có thì thôi -> database có thì update cache giá trị đó thế vào giá trị null ban đầu.
+Redis còn dùng high-level bloom filter giống kiểu hash set để check 1 key có tồn tại trong set k. Nó dùng thuật toán của bloom filter như đã học trong blockchain để check nếu k tồn tại thì return, tồn tại thì lấy giá trị. Cái bloom filter này khả năng là nhanh nên có thể check được 1 lượng lớn request 1 lúc nên vc tạo nhiều request vào giá trị k tồn tại của redis k gây lag database. Đây là khi ta dùng redis làm database lưu dữ liệu luôn. Ít xảy ra vì họ thường dùng mongodb hay SQL để lưu database chính cơ.
+
+
+
+# Use case phiếu giảm giá tăng đột biến
+=> refer tới "NodeJS Other / usepackage"
+
+-> Dùng tool apache benchmark giúp tạo ra vô số request đồng thời để test usecase này
+Tải apache như bình thường -> environment variable trỏ đến bin của Apache -> ab -h
+
+=> ab -n <số request> -c <số request đồng thời> <url gọi vào>
+
+-> Bài toán tồn kho còn 1 nhưng có nhiều USERS mua hàng cùng một lúc:
+Người dùng refresh trang liên tục để bắt được mã giảm giá, nếu dùng SQL sẽ chạy query đốt RAM và CPU ở TH này toang ngay. Thay vì v, người ta sẽ dùng cache vào redis vì tốc độ có thể tăng đến 1000 lần so với database bình thường. 
+Quan trọng redis database chỉ xử lý 1 yêu cầu 1 lúc, tuân theo ACID và các yêu cầu tiếp theo cần xếp vào hàng đợi, k như SQL nhiều query đồng thời. Tương tự database blockchain cũng tuân theo ACID vì sắp xếp transaction sao cho k thể có 2 user cùng thay đổi state của ethereum 1 lúc. Usecase này là k cần thiết trên blockchain vì nếu nhiều người mua hàng bị sellout thì ví tự động báo lỗi contract cho những người chậm hơn rồi.
+
+-> TH cửa hàng phát phiếu giảm giá nhưng khách có thể bấm vào liên tục, refresh trang liên tục thâm chí dùng tool để click lấy mã giảm giá. Nếu ta dùng mongoDB thông thường thì:
+const Schema = mongoose.Schema;
+const phieuGiamGia = new Schema({
+    userId: {type: String, required: true}
+})
+module.exports = mongoose.model('phieuGiamGia', phieuGiamGia);
+=> Và ta phải check 1 người chỉ được có phiếu khi người đó chưa từng có phiếu kiểu:
+isGiamGia = async( req, res) => {
+    const {userId} = req.body;
+    const record = await phieuGiamGia.findOne({
+        userId
+    });
+    if(userId){
+        return res.json({isGet: true})
+    }
+    const creRecord = await phieuGiamGia.create({userId})
+    return res.json({
+        isGet: creRecord ? true : false
+    })
+}
+=> Tư duy thông thương như này sẽ check họ chưa có phiếu thì mới tạo query phát phiếu cho họ. Nhưng làm như này thì éo được vì sẽ có TH 1 người 2 phiếu giảm giá vì nếu người đó gửi 2 request gần như tức thời và request 2 chạy qua findOne khi request 1 chưa kịp gọi create thì cả 2 đều pass qua findOne.
+
+=> Giải pháp rất dễ nếu dùng mongodb. Do hàm findOne và create là 2 hàm độc lập. Dù trên từng hàm từng document nó là atomic nhưng độc lập nhau nên bị dính chưởng. Ta chỉ cần bỏ qua kẽ hở giữa 2 hàm và vẫn giữ tính atomic là được với findOneAndUpdate() -> tìm và sửa trong cùng 1 query:
+const isGiamGia = async({userId}) => {
+    const record = await phieuGiamGia.findOneAndUpdate({
+        userId
+    },{
+        $setOnInsert: {
+            userId,
+        },
+    }, {
+        new: false,
+        upsert: true,
+    });
+    if (!record) {
+        this.isGiamGia();
+    }
+}
+=> $setOnInsert cho biết trường sẽ được chèn thêm vào trong nó là userId; upsert: true là phần truy vấn userId nếu k tồn tại sẽ được tạo mới; new: false là trả về giá trị query thay vì giá trị sau khi sửa đổi. Ở đây tìm thấy thì gán bằng chính nó, nếu k thì tạo mới 
+Có nhiều hàm atomic cấu trúc tương tự như findOneAndReplace
+
+Nếu dùng redis:
+const isGiamGia = async({userId}) => {
+  const result = await this.redis.setNX(userId, 'true');
+  if (result === 1) {
+    //set được r, cho phép mua
+  }
+}
+=> setnx là 1 atom của redis nghĩa là nếu userId k có giá trị thì set là true, có rồi thì k làm gì cả
+
+-> Phân tích về tính ACID trong cơ sở dữ liệu:
+Transaction là tập hợp các hành động đọc ghi xuống database hoặc là thành công hết, hoặc là k có hoạt động nào được thực thi
+Tức là trải qua 1 loạt các operation, nếu operation thứ 3 bị sai thì rollback lại coi như chưa thực hiện gì thì đó là 1 transaction, nếu operation thứ 3 bị sai mà k rollback lại cả operation 1 và 2 thì đó k là 1 transaction. Transaction được đặc trưng bởi 4 yêu tố ACID
+Trong SQL, mọi câu lệnh phải được thực hiện trong phạm vi 1 transaction, nếu k định nghĩa thì database tự hiểu mỗi câu SQL được bao ngoài là 1 transaction.
+1) Atomicity: chỉ có 2 TH là tất cả thay đổi transaction được đồng bộ xuống database(abort) or tất cả k được đồng bộ(commit)(đã biết)
+2) Consistency: tất cả các ràng buộc toàn vẹn dữ liệu như constraint, key, data types, trigger, check phải được thực thi thành công cho mọi transaction. Nếu k sẽ rollback tất cả 
+3) Isolation: các transaction xảy ra xen kẽ k làm mất tình nhất quán dữ liệu vì sự thay đổi dữ liệu được cô lập và các transaction khác sẽ k thấy cho đến khi đồng bộ xuống database. VD: ban đầu X = 50 và Y = 50
+T: Read(X) -> X *= 100 -> Write(X) -> Read(Y) -> Y -= 50 -> Write(Y)
+T': Read(X) -> Read(Y) -> X = X + Y -> Write(Z)
+=> T thực hiện đến Read(Y) thì T' bắt đầu thực hiện tức là T đã đồng bộ giá trị của X xuống database thông qua Write(X) nên T' Read(X) sẽ nhận được giá trị 5000 nhưng lúc Y đọc nó thì vẫn là 50. Đó là tính Isolation. Giả sử tốc độ T và T' chạy là như nhau thì lúc T' gọi Read(Y) thì data từ T vẫn chưa Write vào database nên T' vẫn lấy 50.
+=> K đúng lắm. Thực tế ở đây kp là 2 transaction vì chỉ có lệnh write ms là trans thôi và trong quá trình write, các operation write hay read khác cùng biến đó sẽ phải chờ.
+Từng transaction phải thực hiện trong 1 môi trường độc lập để 2 trans cùng lúc sẽ k ảnh hưởng tới nhau. Khi 1 người gửi vào 10 triệu và 1 người rút 10 triệu từ cùng 1 quỹ 100 triệu thì số dư phải cập nhập sau 2 hành động này là bao nhiêu. Tính độc lập của transaction sẽ khiến dữ liệu liên quan trong 1 transaction(write) bị khóa lại và các trans dùng nó sẽ phải đợi trans trước xong or hoàn tất hoặc là sẽ báo lỗi. Có thể là hàng đợi
+4) Durability: đảm bảo 1 transaction thực thi thành công thì tất cả thay đổi phải được đồng bộ xuống database kể cả khi hệ thống lỗi or mất điện. Các transaction thành công mà chưa dược đồng bộ xuống database phải được đồng bộ khi hệ thống hoạt động trở lại. Commit data and Never lost. 
+
+=> Nch là hầu hết các database hiện tại đều có các hàm hỗ trợ ACID
+

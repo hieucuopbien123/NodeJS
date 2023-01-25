@@ -1,0 +1,47 @@
+{
+  "name": "usepackage",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cross-env NODE_ENV=development nodemon server.js",
+    "start:prod": "cross-env NODE_ENV=production node server.js",
+    "shell": "node server.js",
+    "commit": "cz",
+    "test:precommit": "echo Hello",
+    "test:precommit2": "echo World"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^5.0.1",
+    "clear": "^0.1.0",
+    "commitizen": "^4.2.4",
+    "compression": "^1.7.4",
+    "config": "^3.3.7",
+    "escape-html": "^1.0.3",
+    "express": "^4.18.1",
+    "figlet": "^1.5.2",
+    "localtunnel": "^2.0.2",
+    "marked": "^4.0.14",
+    "marked-terminal": "^5.1.1",
+    "minimist": "^1.2.6",
+    "morgan": "^1.10.0",
+    "ngrok": "^4.3.1",
+    "nodemon": "^2.0.16",
+    "redis": "^4.0.6",
+    "shelljs": "^0.8.5"
+  },
+  "description": "",
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "cz-conventional-changelog": "3.3.0",
+    "pre-commit": "^1.2.2"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}

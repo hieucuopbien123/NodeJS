@@ -1,0 +1,190 @@
+1 Cloud Server có nhiều Cluster, 1 cluster có nhiều database bên trong, 1 database bên trong có nhiều model tên khác nhau, mỗi model có nhiều document bên trong.
+=> Đó là trên Cloud Server thấy vậy. Thực tế khi code ta tạo ra: 1 Schema định nghĩa model có những gì là type của model, 1 model có tên(*) và tạo ra từ schema nào và là type của từng collection. 1 collection chính là 1 document(*) nên thực tế cho model gắn với từng document luôn sẽ giống với góc nhìn từ cloud server nhưng vc tạo ra collection để cung thêm các hàm như save để thao tác cụ thể hơn với document mà thôi. Còn Schema chỉ là thứ giúp tạo ra model thông qua vc tái sử dụng các Schema cũ, ta k cần xét nó trong quan hệ với database.
+=> Code rất nhiều nhưng database kể từ bên trong tên database thì chỉ bắt tên model(chuyển viết thường số nhiều) và các docs để thêm thôi.
+=> Chú ý trong cloudserver nó gọi collection mới là list các document, k có khái niệm model
+
+
+Connect:
+var mongoose = require('mongoose');
+var db = mongoose.createConnection("<url có tên database>", {useNewUrlParser: true,  useUnifiedTopology: true});
+db.on("error", <fallback>);
+db.once("open", <async fallback>);
+
+Khởi tạo:
+var Schema = mongoose.Schema;
+var schemaInstance = new Schema({ name: String, <> });
+schemaInstance.add({ <> });
+
+Khởi tạo function cho model:
+Schema -> Model > Collection = Document thì model chứ 1 list các collection nên có thể định nghĩa các hàm static model làm gì VD tìm các collection bên trong nó thỏa mãn cái gì:
+schemaInstance.statics.staticFunc = function(data) { this.find({ name: new RegExp(data, "i") }) }
+=> Gọi: ModelName.staticFunc();
+
+Khởi tạo các loại hàm cho collection:
+schemaInstance.methods.aFunction = function () { 
+  this.name; 
+  this.model("Blog").find({...}).mongooseCollection.name => cx thao tác với cả model được
+} 
+=> Gọi: CollectionName.aFunction()
+
+Khởi tạo model:
+var ModelName = mongoose.model("ModelName", schemaInstance);
+
+Khởi tạo collection và add data:
+C1:
+var collection = new ModelName({ <data insert> }); 
+collection.save(function(err,data) { <> });
+C2: k cần thao tác với collection vì collection họ chỉ dùng khi cần gọi thêm các hàm ở riêng của nó thôi, ở đây ta lưu đc trực tiếp
+ModelName.create({<data>}, function(err, data) {  });
+C3: tương tự nhưng nhiều data
+ModelName.insertMany([{<data1>}, {<data2>}], function(err) {});
+
+Thao tác với collection là 1 document r: Mọi hàm thao tác của collection có thể thao tác trực tiếp bằng model
+collection.overwrite({<>}) => save
+
+Khởi tạo helper function cho Model: 
+Schema.query.byName = function(name) { this.where({ name: new RegExp(name, "i") }) }
+=> Dùng: ModelName.findOne().byName("<name>").exec(function(err, data) {  })
+
+Query model cho việc view data:
+ModelName.find({ <data> }).where("age").gt(1).exec(function(err, data)=>{ });
+ModelName.find({ name: "Hello", age: { $gte: 9 } })
+ModelName.find({ name: /hello/i }, null/'name age', { skip: 10 }).exec();
+await ModelName.findById("<>");
+=> Các hàm queryhelper phục vụ find có sẵn: limit, sort, select, where, equals, gt, lt
+await ModelName.aggregate([{ $match: {"name.last": "Hieu"} }]); trả ra object js chứ kp mongoose docs, chú ý nó k tự cast id sang ObjectId của MongoDB.
+ModelName.count({ type: 'jungle' });
+ModelName.where({ 'color': 'black' }).count();
+
+Query liên kết bảng populate như mongodb:
+await ModelName.findOne({title: "A"}).populate("author name").populate("fans") => kết hợp trường name bảng author và mọi trường bảng fans = .populate(["author name", "fans"])
+await ModelName.findOne({title: "A"}).populate({path: "author", match: {age: { $lte: 50 }, select: "name _id", options: { limit:2 }}); => khi là 1 mảng
+await ModelName.findOne({title: "A"}).populate({path: "fans", perDocumentLimit: 2}); => Khi là 1 mảng 
+await ModelName.findOne({title: "A"}).populate({path: "friend", populate: {path: "friends", select: "name _id", model: "User"}); => khi lồng nhau 
+=> dùng trong middleware
+
+
+QueryModel cho subscribe:
+var cursor = Person.find({<>}).cursor();
+=> Dùng: cursor.on("data/close", function(data/){}); => cái này chỉ dùng là bắt event emitter của find mà thôi còn subscribe bất cứ khi nào có sự thay đổi phải dùng watch.
+ModelName.watch().on("change", data => {  });
+
+Query model cho vc thay đổi dữ liệu:
+await Staff.deleteOne({ name: "Hello" }, function(err) { }); => deleteById, delete, updateOne, findOneAndUpdate, deleteMany, findByIdAndDelete, findByIdAndRemove, findByIdAndUpdate, findOneAndDelete, findOneAndRemove, findOneAndReplace
+ModelName.replaceOne({}, { name: "<>" });
+ModelName.updateMany({"name.firstName": "Nguyen"}, {"name.lastName": "Hieu"});
+ModelName.remove({<>}, function(err, res) {})
+
+Tạo ảo hóa cho 1 collection:
+SchemaName.virtual("<tên virtual>").get(function(){ return this.<att collection>; })
+=> Dùng: CollectionName.<tên virtual>; -> phải save cái collection r mới dùng được virtual của nó
+SchemaName.virtual("<tên virtual>", {ref: "tên model", localField: "", foreignField: "", count: true})
+=> Dùng: const data = await ModelName.find().populate("<tên virtual>"); data.<tên virtual>[0]....
+
+Checkdata: nếu đăng lên database nó cũng tự động check
+await Student.updateOne({}, { age: 'bar' }, { runValidators: true });
+const error = await document.validate(); => error.errors["name"].message sẽ ra message của lỗi do trường name gây ra
+document.validateSync();
+
+Khởi tạo middleware cho schema: mọi model dùng schema này khi thao tác sẽ phát ra sự kiện xử lý, model phải tạo ra sau middleware
+schema.pre/post("save/validate/init/remove", function(next/doc,next/error,doc,next) { next(<>); }); 
+=> nếu gọi next(error); thì sẽ là lỗi và dừng các middleware khác, có thể return Promise là error or throw error
+=> nếu nhiều middleware cùng kiểu pre or post và cùng tên sẽ gọi hết lần lượt
+=> loại error,doc,next gọi là error handling middleware
+Có thể tách ra:
+schema.pre("remove", {document/query: true}, function() {});
+
+Thao tác với 1 schema có 1 trường là array các schema con:
+parent.child.create({<data>}); chỉ tạo ra data cho con chứ k lưu mà vẫn phải cho parent.save()
+parent.child.id("<id>").remove();
+parent.child.push({data1}, {data2});
+parent.child = null; parent.save(); => xóa con
+
+Utility của Schema: path
+Utility của Collection: parent(), ownerDocument(), isNew
+Trực tiếp: mongoose.Model, mongoose.Document
+
+
+Các option cho Schema: 
+level1: new Schema({
+  level2: new Schema({
+    test: String
+  })
+})
+name: mongoose.Schema.Types.String,
+date: {
+  type: Date,
+  default: Date.now,
+  min: ['2025-12-09', "Ngày bị nhỏ quá rồi"],
+  max: '2019-19-02'
+},
+age: { type: Number, min: 18, max: 65 },
+array: [],
+dateArray: [Date],
+docArr: [{name: String}],
+singleNested: new Schema({ name: String }),
+nested: {
+  age: Number
+  first: { 
+    type: String, 
+    lowercase: true, 
+    uppercase: false, 
+    trim:true, 
+    minlength: 2, 
+    match: "Hello", 
+    required: function() { this.age > 0 } 
+  }
+},
+mapOfString: { type: Map, of: String },
+details: {
+  first: String,
+  type: {
+    type: String
+  }
+},
+data: {
+  type: Number,
+  get: v => Math.round(v),
+  set: v => Math.round(v),
+  alias: "d"
+  index: true,
+  unique: true,
+  sparse: false,
+  enum: [1, 2],
+  validate: () => Promise.resolve("OK"); => là validate bất đồng bộ
+},
+phone: {
+  type: String,
+  validate: {
+    validator: function(v) { return /\d{3}-\d{3}-\d{4}/.test(v); },
+    message: props => "not a number"
+  },
+  select: false
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+}
+
+var parentSchema = new Schema({
+  child: { type: { name: String } }
+});
+=
+var parentSchema = new Schema({
+  child: new Schema({ name: 'string' })
+});
+
+var schema1 = new Schema({
+  author: { type: Schema.Types.ObjectId, ref: "Person5" } => ref đến model "Person5" cột _id
+});
+
+var commentSchema = new Schema({
+  body: {type: String},
+  on: {type: ObjectId, required: true, refPath: "onModel"},
+  onModel: {type: String, enum: ["BlogPost", "Product"]} => bảng này ref tới 1 trong 2 bảng BlogPost và Product thông qua cột _id
+});
+=> khi gọi .populate("on") thì nó chạy vào thấy refPath và nhảy vào trường onModel. Trong đây nó sẽ check trường onModel là gì và lấy type: ObjectId là ref "on" với _id của bảng đó, trùng thì lấy
+
+
+Other:
+- Ta dùng: ModelName.updateOne({ _id: doc._id }, { $set: { name: 'foo' } })
+hoặc ModelName.findOne tìm ra doc và gán trực tiếp doc.name = "foo" cũng tương tự nhau nhưng sau đó phải gọi doc.save();
+

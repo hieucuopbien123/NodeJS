@@ -1,0 +1,113 @@
+Dùng mongodb
+MongoDB lưu dữ liệu như 1 document, tập hợp các cặp key-value. Ta có thể định nghĩa nhiều database trong mongodb và mỗi database có nhiều collection. Cấu trúc dữ liệu gọi là BSON(Binary JSON), nó hỗ trợ cả những kiểu như Date,.. mà JSON k có. MongoDB có thể chuyển JSON thành BSON và người dùng có thể query như JSON thoải mái.
+
+=> Url search tại: https://mongoosejs.com/docs/
+
+Nó kp là relational database như SQL mà giống JSON rất linh hoạt. Làm việc với các object, cấu trúc dữ liệu có thể thay đổi theo thời gian. Chỉ mục, query, tổng hợp thời gian thực. MongoDB là cơ sở dữ liệu phân tán ở nhân của nó nên tính sẵn sàng cao. Khả năng mở rộng chiều ngang tốt VD có thể thêm máy chủ ở nhiều địa điểm mà kp nâng cấp phần cứng của server duy nhất như MySQL hay SQL Server. 
+
+Mô hình lưu trữ khác với SQL và với các dữ liệu lớn, họ thường dùng NoSQL như Redis, MongoDB có hiệu suất cao.
+
+Kiến trúc MERN Stack nói về bộ MongoDB, ExpressJS, ReactJS, NodeJS. Nó là 1 biến thể của MEAN Stack(thay React bằng Angular).
+ReactJS <--> NodeJS[ExpressJS] <--> MongoDB
+
+
+
+# Basic
+MongoDB là cơ sở dữ liệu thg dùng trong NodeJS, free. Nó đáp ứng được tất cả yêu cầu phức tạp nhất ở mọi quy mô. Cung module dùng vói nhiều ngôn ngữ. 
+
+Document là 1 bản ghi của 1 collection và là đơn vị dữ liệu. Gọi là BSON và tồn tại ở định dạng nhiều kiểu dữ liệu hơn.
+Collection là 1 nhóm các document, như 1 bảng trong RDBMS. Các document trong 1 collection có thể có field khác nhau nhưng thg cấu trúc là tương tự or liên quan nhau (DB > Collection > Document)
+=> Thực tế trong code là: Database > Schema > Collection = Model > Document
+Schema là khuôn mẫu của collection. Model là 1 lớp giúp xây dựng các document tuân theo 1 Schema.
+
+Field là 1 cặp name-value của 1 document, tương tự như cột trong RDBMS. 
+PrimaryKey mặc định là _id
+Embedded Document giống như TableJoin trong SQL.
+
+-> Cài đặt:
+Để dùng phải cài MongoDB Server(server lưu data) và MongoDB Driver(để connect với server) bằng cách dùng module mongoose
+MongoDB Server có thể cài trực tiếp local or sử dụng MongoDB Cloud Server. Có nhiều trang cung cấp free như mLab,.. 
+Phổ biến nhất là cloud.mongodb.com:
+Sau khi tạo được cloud server thì cần vào deployment để connect trong 1 cluster -> vào network access mục security cột bên trái, thêm IP address máy của ta và chọn connect qua driver sẽ lấy được connection string để dùng trong ứng dụng => Do ta dùng IP động nên mỗi lần access phải cập nhập lại IP trên server or testing thường đặt chấp nhận mọi IP
+Chỉnh được loại project ở bên trên cột trái
+
+-> Dùng express-mongo-santinize: package dùng cho express khi dùng mongodb có thể xử lý input tránh Injection
+
+
+
+# Code mongoDB
+-> Các type trong schema phổ biến là: String, Number, Date, Boolean, Buffer, Array, Mixed, ObjectId, Decimal128, Map, còn kiểu function nữa
+mongoose-autopopulate là plugin hỗ trợ 1 số tùy chọn SchemaType bổ sung thêm có thể dùng
+
+-> Chú ý thao tác với database nó thực hiện từ từ và nếu bước cuối bị lỗi thì các hàm nào thao tác với database mà k liên quan đến nó đã chạy xong từ trước sẽ k được hoàn tác. Đã thao tác gì xong với database thì vẫn cứ lưu. Giống SQL vì các DB thuần hoặc là ta tự tạo transaction, hoặc là cung sẵn các hàm atomic để dùng, nếu k thì vc update database giữa các lệnh trong cùng 1 hàm sẽ coi là độc lập.
+
+
+
+# Dùng package mongodb
+
+
+
+# Dùng package mongoose
+Package mongoDB là package của NodeJS tương tác với database server nhưng module mongoose được xây dựng dựa trên mongoDB và đơn giản hóa các thao tác giúp ta tránh dùng các câu lệnh phức tạp. Nó là 1 Object Data Modeling(ODM) cho MongoDB và NodeJS: npm i --save mongoose
+
+-> Trong 1 dự án, ta chỉ dùng 1 biến model thôi, nếu dùng 2 sẽ lỗi, k thể override 1 biến model
+
+-> Trong MongoDB có lệnh save là lệnh giúp update trạng thái của database server, khi dùng nó sẽ chạy validation và các middleware nếu dùng. Còn nếu ta update trực tiếp bằng các hàm như updateMany, update, findOneAndUpdate thì k cần dùng đến save() middleware. Tức là khi ta gán thủ công thì cần save để lưu lại, gọi hàm có sẵn thì nó tự động save ở cuối r
+
+Còn có: deleteMany, findByIdAndDelete, findByIdAndRemove, findByIdAndUpdate, findOneAndDelete, findOneAndRemove, findOneAndReplace, findOneAndUpdate, replaceOne, updateMany, updateOne.
+
+findOne, find trả ra các documents liên quan or null
+count trả ra số document bị ảnh hưởng
+update trả ra số docs đã được update
+
+Lưu ý các query trong mongoose k là promise mặc dù vẫn có callback, await or then đều được nhưng k là kiểu promise.
+
+--> Middleware(pre hay post hooks) là 1 function mà được gọi bất cứ khi nào 1 hàm bất đồng bộ được thực thi, được chỉ định trong 1 schema. Có 4 loại: document middleware, model middleware, aggregate middleware, query middleware hỗ trợ từng phần khác nhau như: deleteOne, insertMany, aggregate, init(là 1 hàm đồng bộ), save, validate,...
+Tất cả các loại middleware đều hỗ trợ pre và post hooks
+Middleware dùng nhiều trong các tác vụ logic cao, các validation phức tạp, các hàm bất đồng bộ thông thường hay các tác vụ đồng bộ chứa nhiều hành động, xóa 1 document phụ thuộc(VD xóa 1 người thì xóa luôn comment của họ thì có thể thực hiện vc xóa comment đi kèm bằng cách dùng middleware)
+
+Pre middleware được thực hiện sau mỗi lần ta gọi nó
+Post middleware được thực thi khi sau khi tất các các hook method hay pre middleware được hoàn thành.
+
+--> Populate trong mongoose là quá trình tự động thay thế các paths trong docs gốc bằng các path docs khác, giúp gôp nhiều document, object hay tất cả các query từ 1 query
+
+=> Lưu ý: middleware phải chỉ định trước khi khởi tạo model. Khởi tạo model xong mới khai báo middleware sẽ k chạy
+
+--> MongoDB hỗ trợ giao dịch nguyên tử ở cấp từng single document kể cả nếu nó modify nhiều document nhúng vào trong single document đó.
+VD: Khi 1 người gọi hàm db.collection.updateMany() chẳng hạn thì nó chỉnh sửa nhiều document nhưng vc sửa đổi từng doc vẫn là atomic dù operation as a whole thì k atomic.
+VD: findAndModify 1 document trong mongoDB là atomic. Khi document trùng được find thì concurrent queries có additional update cho doc đó sẽ k được thực thi cho đến khi cái current update hoàn thành
+VD: tạo ra 1 database với: db.myCollection.insertMany( [
+   { _id: 0, a: 1, b: 1 },
+   { _id: 1, a: 1, b: 1 }
+] )
+=> Sau đó ta chạy song song 2 cái queries giống nhau như dưới:
+db.myCollection.findAndModify( {
+   query: { a: 1 },
+   update: { $inc: { b: 1 }, $set: { a: 2 } }
+} )
+Cả 2 cái cùng tìm thấy cái _id: 0 thì 1 query thực hiện cái update cái _id 0, query còn lại định thực hiện trên query _id: 0 do atomic k cho thực hiện đồng thời nhưng nó bị đổi r nên lại tìm tiếp và đổi cái _id 1
+
+
+# Usecase phiếu giảm giá tăng đột biến
+=> refer tới "Module dùng redis / # Usecase phiếu giảm giá tăng đột biến"
+
+
+
+# Other
+-> Tổng kết:
+Kết nối database server, tạo database và bắt sự kiện
+Thao tác với Schema SchemaTypes
+Thao tác với static function và methods
+Tạo Model từ Schema và thao tác với model thay đổi documents
+Thao tác với từng document
+Thao tác với virtual
+Validation
+Thao tác với subdocuments
+Thao tác với query helper
+Thao tác với query có conditional
+Thao tác với ChangeStream subcribe sự kiện
+Thao tác với cursor, aggregation, populate
+Liên kết nhiều document với ref và refPath
+Thao tác với middleware, error handling middleware
+
+

@@ -1,0 +1,10 @@
+## Các pattern
+
+
+
+# Pattern tách chức năng ra 1 hàm riêng
+-> Tức nhiều nơi tương tự nhau, có vài nơi sử dụng tính năng này, có vài nơi không, ta có thể tách tính năng này thành 1 file riêng nhận input và cho ra output, export ra các hàm để sử dụng. 
+
+=> refer tới "Projects / ConnectWeb3Wallet / web / index.js có hàm handleEmit": 1 số transaction có thể cần dùng, 1 số trans k cần, cái nào cần thì bh rất gọn bằng cách gọi đúng 1 hàm handleEmit ngay sau khi thực hiện trans là xong. Vc tách ra file riêng rất tiện
+
+

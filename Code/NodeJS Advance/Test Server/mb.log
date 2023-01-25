@@ -1,0 +1,6 @@
+{"message":"[mb:2525] mountebank v2.4.0 now taking orders - point your browser to http://localhost:2525/ for help","level":"info","timestamp":"2021-10-29T14:44:30.123Z"}
+{"message":"[mb:2525] GET /images/book.jpg","level":"info","timestamp":"2021-10-29T14:44:37.210Z"}
+{"message":"[mb:2525] GET /images/book.jpg","level":"info","timestamp":"2021-10-29T14:44:42.740Z"}
+{"message":"[mb:2525] GET /images/book.jpg","level":"info","timestamp":"2021-10-29T14:44:45.803Z"}
+{"message":"[mb:2525] GET /images/book.jpg","level":"info","timestamp":"2021-10-29T14:44:47.550Z"}
+{"message":"[mb:2525] GET /images/book.jpg","level":"info","timestamp":"2021-10-29T14:44:50.717Z"}

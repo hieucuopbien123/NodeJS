@@ -1,0 +1,39 @@
+{
+  "employees": [
+    {
+      "id": 1,
+      "firstName": "Phuc",
+      "lastName": "Lê",
+      "address": "28 Nguyễn Tri Phương, Phú Nhuận, TP Huế",
+      "profile": {
+        "username": "phuc.le@codegym.vn",
+        "email": "phuc.le@codegym.vn"
+      }
+    },
+    {
+      "id": 2,
+      "firstName": "Khanh",
+      "lastName": "Lê",
+      "address": "28 Nguyễn Tri Phương, Phú Nhuận, TP Huế",
+      "profile": {
+        "username": "khanh.le@codegym.vn",
+        "email": "khanh.le@codegym.vn"
+      }
+    },
+    {
+      "id": 3,
+      "firstName": "Hoàng",
+      "lastName": "Phan",
+      "address": "28 Nguyễn Tri Phương, Phú Nhuận, TP Huế",
+      "profile": {
+        "username": "hoang.phan@codegym.vn",
+        "email": "hoang.phan@codegym.vn"
+      }
+    },
+    {
+      "a": 1,
+      "b": "Textual content",
+      "id": 4
+    }
+  ]
+}

@@ -1,0 +1,679 @@
+hNodeJS:
+NodeJS có thể làm server cho website SSR. Tương tự python hay java cũng có lib làm web, code giao diện cứ như React vậy và là SSR, sau cũng convert ra HTML/CSS mà thôi. Nó như nhau chỉ khác là dùng ngôn ngữ khác
+
+-> Console của client là trình duyệt F12, console của server là cmd chạy -> nếu lỗi xảy ra ở 1 trong 2 khi post/get thì sẽ dừng CT -> khi đó phải kiểm tra lỗi của cả server và client ở 2 nơi nhé, k thì tìm lỗi đến sang năm. 
+
+
+
+# Chia cấu trúc thư mục
+=> refer tới "NodeJS Basic / Uploadimg cloudinary"
+
+
+
+# Basic
+-> Dùng biến global trong nodejs: process.nextTick, global, __dirname, __filename
+Các biến global giúp giải quyết vấn đề cần truy cập vào các thứ như đường dẫn thư mục hiện tại, process,...
+
+Thực chất các hàm như setTimeout, setImmediate là thuộc tính của biến global
+
+-> Có 2 mô hình:
+Frontend dùng React tương tác với database thông qua backend server nodejs, có 1 nguồn server khác cung file giao diện cho người dùng(CSR)
+Backend server nodejs cung ra file giao diện cho người dùng luôn và cũng tự implement tương tác với database(SSR)
+=> Chú ý phân biệt dự án đang dùng là loại nào
+
+-> Chạy dự án nodejs
+Trước giờ chạy node file.js là chạy riêng cái file js với màn hình console chính là terminal. Ta có thể chạy 1 file js code server tương tự. Còn 1 cách nx là chạy với command npm start thì nó sẽ mò trong thư mục file có tên là  "server.js" và chạy code server file đó. 1 dự án chỉ nên có 1 file server.js chạy bằng npm start là chuẩn.
+
+-> Dùng export + require trong NodeJS
+require package, require file json, require export
+--> circular dependencies học để biết thôi chứ trong thực tế luôn luôn né ra
+
+
+
+# Kiểu json
+JSON(Javascript Object Notation). Khi làm các ứng dụng website ta sẽ lưu trữ dữ liệu vào 1 hệ quản trị cơ sở dữ liệu vd SQL Server. Nhưng nó chỉ dùng các ứng dụng cần nguồn cơ sở dữ liệu lớn. Với các ứng dụng nhỏ thì ng ta sẽ dùng JSON, ngày xưa tương tự dùng sql lite or xml nhưng nó phức tạp hơn và cũ rồi. Nó lưu dưới cặp key-value như trong file package.json:
+=> Có thể dùng mảng: 
+[
+    {
+        "name" : "Nguyễn Văn Cường",
+        "age" : "21 tuổi"
+    },
+    {
+        "name" : "Nguyễn Văn Kính",
+        "age" : "22 tuổi"
+    }
+]
+Nếu có key thì phải là object: 
+{
+    "sv0001" : {
+        "toan" : "Môn Toán",
+        "ly" : "Môn Lý"
+    },
+    "sv0002" : {
+        "toan" : "Môn Toán",
+        "anh" : "Môn Anh"
+    }
+}
+
+
+
+# Event loop của NodeJS
+
+
+
+# Các package có sẵn trong NodeJS
+URL tổng hợp: https://www.w3schools.com/nodejs/ref_modules.asp
+
+-> Dùng buffer
+Buffer object cx là 1 global object giúp lưu trữ tạm thời trong RAM, tắt ct là mất (khác với cái node-persist là lưu lâu dài vào file). Buffer hỗ trợ lưu nhị phân, octet (JS thuần k làm đc), cân mọi kiểu encode.
+=> thường dùng để xử lý luồng TCP, tệp tin. Vì lưu data dưới dạng dãy nhị phân, ta có thể làm vc với từng byte của dữ liệu. Trong đa số các TH, nếu ta k cần thao tác như v thì k cần dùng đến kiểu Buffer.
+
+Các đối tượng được tạo ra trên bộ nhớ k còn đc sử dụng sẽ bị loại bỏ bởi Garbage Collector kể cả buffer. Để Ct chạy nhanh hơn thì phải hạn chế dùng garbage collector NodeJS dùng 1 bể chứa pool chứa các buffer k còn đc sử dụng gọi là buffer pool(chứ nó k đưa cho garbage collector ngay), trong Ct ta có thể gọi nhiều biến buffer mà. Khi cần buffer, nó sẽ lấy ra từ trong pool đã lưu, nếu pool hết buffer mới tạo mới 1 buffer khác. VD 1 buffer ta sử dụng lâu dài xuyên suốt mà k muốn được quản lý bởi pool thì có thể dùng Buffer.allocUnsafeSlow(<size>); thì biến đó sẽ k ảnh hưởng bởi pool hay garbage collector gì hết => ít dùng
+VD: dùng cho 1 buffer mẫu copy dữ liệu như 1 mẫu có sẵn tạo ra các buffer khác
+
+=> Tạo buffer từ data có sẵn or tạo vùng nhớ trống theo các kiểu encode khác nhau, lấy string và json từ buffer, write data và buffer, thao tác các buffer operator
+
+-> Dùng fs: thư viện giúp đọc ghi file, đổi tên file, xóa file, mở file r đọc bằng promise
+Có thể đọc ghi file sync or async
+Có thể watch sự thay đổi của 1 file
+
+-> Dùng events: thư viện thao tác với sự kiện. Stream cũng là 1 event emitter. Tạo kế thừa event emitter
+=> Bắt events, phát events, xóa events
+
+--> Thao tác với stream
+Mỗi stream đều là 1 event emitter cho phép bắt sự kiện theo thời điểm cụ thể(đã biết). 4 sự kiện có sẵn thường dùng là data(đọc), end(hết dữ liệu để đọc), error, finish(khi hoàn thành, dữ liệu được trả về ban đầu)
+Các stream trong Nodejs API đều là chuỗi hoặc buffer. Chế độ object mode của stream ra đời giải quyết vc thao tác với các kiểu giá trị khác của js k có dạng buffer hay chuỗi, tức là stream có 1 chế độ object nx, muốn sử dụng phải chuyển sang chế độ object khi khởi tạo stream
+
+Kiểu stream trong Nodejs: giúp giải quyết vấn đề đọc ghi dữ liệu. Nó cần thiết bởi vì ví dụ cần đọc 1 dữ liệu 10GB mà server có 1GB thì nó giúp lấy từng phần của dữ liệu để đọc nên có ưu thế khi xử lý dữ liệu lớn từng chút 1. Cơ chế của nó sẽ ghi dữ liệu vào buffer và check nếu buffer đầy sẽ dừng lại, xử lý, ghi tiếp phần tiếp theo vào buffer khắc phục hiện tượng tràn buffer của kiểu đọc thông thường
+Có 4 loại stream: readable, writable, duplex, transform(giống duplex nhưng output khác nhau dựa vào input).
+
+-> Dùng util: thư viện cung các utilities function
+Hàm format
+
+-> Dùng http => ít dùng vì phức tạp
+--> Dùng querystring: giúp parse body của http request => bị deprecated
+--> Tự set header
+--> Dùng để gửi request http thông qua object options
+
+-> Dùng zlib: thư viện giúp nén file
+Trên window nó cx dùng đc file gz như file zip, chẳng qua là k dùng phổ biến như linux thôi.
+
+-> Dùng path: thư viện thao tác với đường dẫn
+
+-> Dùng url: thư viện thao tác với url website
+Có thể dùng để lấy params truyền vào url từ phía client để query đến server
+
+-> Dùng child_process: thư viện hỗ trợ thao tác đa luồng trong nodejs
+Dùng process.send trong nodejs có thể gửi data từ process con sang process cha.
+
+--> Dùng spawn: chạy 1 lệnh nào trên 1 tiến trình con và trả ra cho stdio
+--> Dùng exec: chạy lệnh nào trên 1 tiến trình con và bắt sự kiện
+--> Dùng execFile: chạy lệnh nào trên 1 tiến trình con và trả ra cho buffer
+--> Dùng fork: gọi fork 1 phát là file đó được thực hiện luôn trên 1 tiến trình riêng
+
+--> Dùng thư viện @rauschma/stringio: bổ trợ cho việc dùng child_process
+
+-> Dùng os: thư viện tương tác với libuv của C++ giúp tương tác với phần cưng
+
+
+
+# Các package backend NodeJS thường dùng
+-> Dùng node-persist: thư viện giúp tạo 1 global store
+Để lưu trữ dữ liệu tạm thời thì trong Javascript HTML5 có khái niệm LocalStorage và SessionStorage, còn trong PHP thì có khái niệm session. Trong NodeJS cx có cách để lưu dữ liệu tạm thời. Chúng ta sẽ sử dụng module node-persist để lưu trữ dữ liệu tạm thời trên Server(không lưu trong hệ quản trị CSDL mà lưu file trong hệ thống or bộ nhớ-tức lưu trong RAM, ổ đĩa) với 1 chuỗi JSON.
+Nó dùng cơ chế tương tự localStorage nhưng ở phía server thì k lo lộ nhưng nếu web nodejs thì lưu localStorage có thể lộ. Lưu vào storage thực chất là lưu vào 1 file
+Tương tự localStorage, khi muốn lưu 1 object thì tốt nhất nên JSON.stringify nó trước
+
+Ở phiên bản hiện tại node-persist xóa bỏ tất cả hàm Sync k dùng đc nx, từ h luôn là asynchronous dùng kèm async await. Nếu quay về v2 thì dùng được phiên bản synchronous trông dễ hơn nhưng chả ai dùng
+
+=> Khởi tạo nơi lưu, set, get, remove data
+
+-> Dùng yargs: thư viện lấy args khi chạy chương trình => ít dùng vì k có nhu cầu tạo app tương tác bằng console
+=> lấy args và action, tùy chỉnh action nào dùng args nào
+
+Cũng có thể dùng nó để lấy data từ request khi mà client gửi request tới server thông qua command line. Nó sẽ tách chuỗi của request để lấy các tham số + giá trị tham số.
+
+=> Dùng process.argv cũng là 1 cách thủ công lấy data của lệnh truyền vào. 
+--> Dùng minimist đi kèm để parse process.argv thoải mái
+
+-> Dùng crypto-js: thư viện giúp encrypt và decrypt văn bản
+=> encrypt và decrypt văn bản với mật khẩu
+
+Ví dụ mật khẩu trc khi lưu vào server ta sẽ mã hóa, ng dùng đăng nhập sẽ mã hóa r so sánh với chuỗi đã mã hóa trc đó trong server. Có thể sử dụng module này mã hóa ở cả backend và fontend
+
+-> Dùng cheerio: thư viện giúp parse DOM giống jQuery
+--> Dùng request-promise: thư viện giúp crawl body của 1 web từ url, hỗ trợ promise. Kết hợp với cheerio để tạo tool crawl website => hiện tại nó đã deprecated
+
+Crawl dữ liệu từ website là 1 cách thu thập dữ liệu từ 1 website. VD lấy thời khóa biểu từ trang đăng ký học, lấy tin tức tổng hợp từ nh trang báo để tạo nên 1 trang báo tổng hợp. Nch là muốn lấy dữ liệu website nào cx đc. Có 2 loại web là single page application lấy dễ và CTRL+U thấy toàn file script còn multiple page application lấy khó hơn và CTRL+U thấy tất cả dữ liệu trong source => các trang MPA lấy khó bởi dữ liệu HTML khó bóc tách. Tức là các trang MPA mà dữ liệu phức tạp thì rất khó lấy, dữ liệu còn thay đổi thời gian thực thì càng khó
+
+-> Dùng rimraf: thư viện hỗ trợ xóa file và thư mục. 
+npm i -D rimraf -> Thêm lệnh vào package.json: "clean": "rimraf ./build", => r chạy npm run clean 
+Cũng có thể import thành biến để xóa file, folder nhưng kiểu này chỉ dùng cho dự án NodeJS bth chứ k dùng cho react. Trong linux và window đều có lệnh để xóa file nhưng k khác nhau VD dùng rm trên linux sẽ xóa sâu với recursive force. Nhưng rimraf tương thích với mọi nền tảng, cứ thêm vào và dùng command thì hđh nòa cũng ok
+=> refer tới "React / React Other / Dùng các thư viện khác 2"
+
+-> Dùng bcrypt: thư viện hash. Có thể tùy chọn hash bao nhiêu vòng nhưng sẽ rất nặng
+
+-> Dùng chalk: package giúp style text trên console
+Dùng figlet: package in chữ khổng lồ trên console
+Dùng marked + marked-terminal: vẽ ngôn ngữ markdown lên terminal, có thể dùng kết hợp với chalk để custom style => chả bh dùng
+Dùng clear: xóa terminal
+=> Thường chỉ dùng khi cần tạo thư viện
+
+-> Dùng shelljs: thư viện mô phỏng bashscript dùng trong code nodejs
+
+-> Dùng escape-html: chuyển đổi code thuần thành htmll entity chuẩn => bỏ k cần thiết
+
+-> Dùng clean-css: làm đẹp code css => éo bh dùng
+
+-> Dùng faker: thư viện tạo mock data cực nhanh
+
+-> Dùng winston: thư viện logger custom log ra file or console rất mạnh
+
+-> Dùng node-mocks-http: thư viện fake request và response http
+
+-> Dùng supertest: test nhanh http. Hoạt động với mọi test framework or test 1 mình k cùng framework nào cũng đươc
+
+
+
+# Xử lý upload file
+-> Dùng formidable: là module giúp parse form, xử lý file được upload từ phía client.
+Cách dùng formidable phức tạp hơn dùng multer. Tốc độ cao, chiếm ít bộ nhớ, dễ bắt lỗi, dễ test.
+
+--> Tạo upload multiple file phía front end
+
+--> Dùng mv: package giúp move file từ vị trí này qua vị trí khác.
+Package fs có thể dùng đổi tên bản chất là xóa file ở vị trí này và lưu vào 1 vị trí khác, thì vc gán tên từ vị trí này sang vị 1 cái tên ở url vị trí khác thì cũng giống như move file nhưng bị hạn chế bởi quyền khi truy cập vào 1 vài vùng nhớ, đặc biệt là bộ nhớ đệm trên RAM vì file upload lên server được bắn vào bộ nhớ đệm đầu tiên
+=> Dùng package mv giải quyết vấn đề, nó giúp move file tới bất cứ đâu
+
+--> Dùng express-formidable: thay thế cho formidable khi dùng trong express
+Nó k lưu lại vào trong server này như multer. Ứng dụng khác nhau: nếu kiểu ng dùng đăng nhập thì phải lưu thông tin người dùng lại thì nên dùng multer, nếu chỉ hiển thị 1 lần thôi thì expess-formidable
+
+-> refer tới "Dùng multer"
+
+=> Tông kết các cái parse form có file:
+express-formidable là hay nhất khi dùng express. Khi post cái gì trong form kể cả file hay text thì package này cho ta lấy trực tiếp các trường đó trong req, nếu có nhiều file nó lấy thành mảng xong dùng hàm map truy cập vào từng file 1 lấy name, path thoải mái. K hỗ trợ lưu file lại.
+formidable tương tự thì dùng chung mọi thứ cx lấy fields và files khi POST file lên, nó thao tác tất cả trong 1 hàm callback chứ k thay đổi trường của req. Thích dùng 1 hay nhiều file đều đc
+multer thì lấy file nhận đc lưu trên ổ đĩa thư mục nào thì lưu vào rồi hàm middleware sau nó có req sẽ sinh thêm thuộc tính files/file giúp lấy các thuộc tính đã set lưu trong ổ đĩa, có thể kết hợp với cloudinary là ổ đĩa lưu ảnh.
+
+
+
+## Các module quan trọng phía server
+
+
+
+# Dùng express: tạo server backend
+-> Tự setup header thuần với express
+
+-> Dùng middleware: Hàm use của express là sử dụng 1 middleware. Bất cứ khi nào có request từ client đến sẽ chạy vào các middleware chung. Ta gọi next() thì sẽ chạy đến liên tục các middleware tiếp theo, nếu k sẽ dừng ct. Các middleware chung dùng use đc ưu tiên chạy đầu tiên rồi mới đến các middleware riêng của url đó. Nếu các hàm get cx dùng middleware xung khắc thì vẫn chạy hết theo thứ tự như bth. 
+Nhưng thông thường ta dùng các middleware với từng request khác nhau là khác nhau còn use chỉ để dùng các middleware chung giống nhau cho mọi request thôi.
+
+Các cái middleware truyền tay nhau, middleware này có thể truyền dữ liệu vào req cho middleware tiếp theo lấy
+
+--> Dùng middleware của expressjs: có 2 cái thg dùng là express.json và express.urlencoded 
+express.urlencoded({extended: true}) sẽ làm cho dữ liệu trong url mà người dùng gửi đến được lưu lại trong body của req dưới dạng key-value json
+express.json() sẽ giúp lấy được req.body để truy cập vào cặp key-value trong url
+
+Còn có express.static(<>); nếu cần dùng các file static, url truyền vào express.static phải là đường dẫn tuyệt đối nên dùng thư viện path. Khi đó trong các view engine hay gì mà ta muốn import refer đến file static thì có thể viết luôn như đang ở thư mục đó. VD:
+express.static(<absolute path tới thư mục public>) -> public có thư mục stylesheets -> Dùng: link(rel='stylesheet', href='/stylesheets/style.css')
+
+Các middleware có sẵn ta dùng đều tự động gọi next hết rồi, chỉ có middleware ta tự tạo mới phải gọi next thủ công.
+Các middleware mà dùng băng use sẽ tự động thực hiện với mọi request GET ở router đó, nếu dùng global mà k trong router nào tức là tự động thực hiện ở request GET của mọi router. Với request POST thì ta phải tự thêm thủ công nếu dùng middleware.
+
+--> Middleware có thể là router
+---> Dùng express.Router: để xử lý request tới từng route, tách ra file riêng
+---> Dùng đúng mô hình MVC
+----> Xây dựng tính năng tìm kiếm user
+
+--> Middleware là error handler:
+Middleware có thể là các hàm lấy từ các thư viện
+Middleware ta tự tạo là 1 hàm gồm 3 tham số req, res, next
+Middleware là error handler là hàm gồm 4 tham số err, req, res, next
+
+Người ta thường dùng kiểu app.all("*", (req,res,next) => {<>}); ở sau các router khác kiểu để request của người dùng k bị chặn xử lý bởi các router trước đó tức là k tồn tại và trả ra err.statusCode 404 thì luôn có 1 cái errorHandler cho app thay vì để browser tự báo lỗi. Dùng * để bắt mọi lỗi chưa được bắt
+
+-> Các middleware view engine:
+Trong NodeJS có nhiều thư viện template, là thư viện giúp render dữ liệu thành mã HTML và server gửi html đó cho client.
+Template Engine cx chỉ là giúp công đoạn HTML được đơn giản, thiết kế HTML nhanh hơn bằng việc thay biến bằng giá trị thực. VD: Pug, Jade, EJS,...
+
+Quy trình: ta set view engine và thư mục view, sau đó xử lý như nào chỉ cần gọi res.render("<tên file của view engine>"); là nó tự gửi file đó về cho client
+
+--> Dùng jade: cũ nên chả ai dùng nữa rồi. Hơn nữa SSR kiểu này k hay nên cũng chả ai dùng
+
+--> Dùng pug: view engine nên dùng -> npm i pug
+
+--> Dùng ejs: cú pháp củ chuối k dùng
+
+-> Dùng biến môi trường:
+req.app.get('env') trả ra "development" nếu dùng NODE_ENV là development or k dùng package xđ biến NODE_ENV. Ngược lại trả ra "production"
+
+-> Dùng express-generator:
+Sinh ra 1 dự án dùng express cơ bản bao các thư viện thường dùng và đặc biệt là cấu trúc file chuẩn
+
+npx express-generator
+npx express-generator --view=pug myapp => dùng view engine là pug
+
+-> Dùng middleware tĩnh và middleware động
+--> Dùng đủ loại pattern trong middleware động: Đường đẫn động có thể có string pattern hay regular expression hay route params
+
+-> Dùng req và res
+res: cookie(cookie-parser), setHeader, send, redirect, clearCookie(cookie-parser), status, render, json, end, sendFile, header, locals.
+req: cookies(cookie-parser), file, params, files fields(formidable/multer), url, method, body(urlencoded), query, protocol, hostname, path, originalUrl, subdomains, header, app
+
+Thg dùng package url để parse req.url lấy mọi thông tin của url truyền vào
+
+--> Dùng redirect bản chất
+
+-> Dùng express-rate-limit: giới hạn lượng truy cập 1 lúc, tránh ddos
+-> Dùng connect-timeout: sinh lỗi network nếu request lâu quá 5s
+
+-> Dùng app.get/post/put/delete/all
+=> refer tới "Projects / Tinkerbellgarden"
+
+
+
+# Dùng router method API
+Về vc chia router phía server, đúng nguyên tắc của REST API là công dụng của từng lệnh chỉ thực hiện đúng vai trò. Dù v thì khi thao tác bên server bản chất ta có thể gọi GET nhưng thực hiện post thoải mái. Nhưng ng ta khuyên là nên tuân theo đúng vai trò các method dùng cho nó
+
+VD: ta cần POST lên 1 list các customer và thông tin vé, nghiễm nhiên 2 router khác nhau thì phải tạo 2 request khác nhau gửi lên server vì vừa customer, vừa ticket mà. Ta cũng có thể làm chủ server bằng cách viết 1 router chung thực hiện post chung cho cả 2 cái. Nên nhớ res khi thực hiện gửi lại 1 cái gì sẽ k thực hiện các middleware tiếp theo nx nên phải viết các middleware update từng cái cho đi qua r cuối cùng mới trả lại user kết quả cần thiết. Tái sử dụng middleware. Nch là front end hay backend cái nào thuận tiện và đơn giản hơn thì làm đều ok vì làm thêm vài request cũng chả có gì phức tạp nhưng thêm hẳn 1 router ở backend chỉ cho mình request đó thì phiền đấy.
+
+-> Các HTTP request
+VD: Có 1 vài tool test HTTP request cho phép GET kèm với vc gửi body lên serve VD thunderclient dù thực tế điều này k làm được trong code. 
+
+--> Khi code thì GET sẽ bỏ qua phần body của request. 
+VD ở trong dự án SE fetch thông tin về vé thông qua ID. Ta k thể dùng body JSON truyền vào 1 listId được => Buộc dùng querystring để truyền vào, hoặc là cho server dùng các method khác như POST, hoặc là get k có body thì xử lý là get tất cả xong hiển thị ra cái gì thì tự lọc ra mà lấy nhưng cách đổi method k nên dùng.
+Có thể post 1 array trong axios như bth như cách truyền body bth: await client.post("/api", { list: [uuid] });
+
+
+
+# Dùng helmet
+Ng ta thg dùng helmet để tăng security cho dự án, có khả năng che dấu nền tảng đang phát triển. Nó tự thêm các header bảo mật cần thiết vào các request
+=> Khi dùng thêm middleware VD như helmet sẽ thấy số lượng request xử lý được trong 1s bị giảm đi vài nghìn, tức là càng thêm nhiều cho server thì tốc độ nó có thể xử lý càng bị chậm đi. Do đó cần phải xác định xem có nên đánh đổi tốc độ lấy security và các thứ khác hay không tùy dự án
+
+
+
+# Dùng multer
+Dù dùng ở TH nào thì cũng phải xác định cho nó 1 cái storage lưu file và dùng nó tiếp như 1 middleware bth. Trong storage phải định nghĩa nơi lưu file cũng như loại file, lưu với tên là gì. Nó thực chất giúp parse form chứa file và lưu vào ổ đĩa.
+
+-> Dùng multer lưu trong ổ đĩa bth
+
+-> Dùng kết hợp cloudinary: Thư viện giúp lưu ảnh lên cloud
+--> Dùng multer-storage-cloudinary: thư viện giúp tương tác với cloudinary dễ hơn là tương tác trực tiếp. Nó làm sẵn mọi thứ chỉ cần config phát là xong. Middleware sau đó sẽ lấy được file thông qua trường file or files(khi dùng multiple file) của req
+
+Quy trình là người dùng gửi vào url, đi qua middleware gặp multer, đi tiếp vào cloudinary lọc ảnh ra lưu vào cloud
+
+Quy trình code: Tạo storage từ CloudinaryStorage, cái này cần config tài khoản của cloudinary -> truyền vào multer tạo ra middleware -> dùng middleware đó, tùy vào muốn lấy 1 hay nhiều file mà dùng single or array và truy cập bằng file or files
+
+---> Xử lý upload file phía frontend: 
+Phải dùng FormData bởi vì:
+enctype attribute là 1 thuộc tính của thẻ form xác định rằng form-data cần được encoded như thế nào khi submit lên server. Là ảnh thì ta phải dùng multipart/form-data enctype mới được. VD: 
+<form action="/action_page_binary.asp" method="post" enctype="multipart/form-data">
+Là nó tự động gửi mọi thứ trong form tới server chuẩn, tự tạo FormData bao tất cả. Nhưng kp lúc nào ta cũng dùng thẻ html thuần form với thuộc tính enctype như v, VD trong React ta dùng input bình thường thôi nên ta phải tạo thủ công FormData. Vc dùng FormData tương đương với vc dùng enctype. Ta có thể tùy biến thoải mái cái form trong React miễn dùng FormData như v.
+Để hình ảnh của user hiện ra trang client đương nhiên ta k thể để cloudinary gửi lại ảnh cho client hay gì mà ta làm nó trả ra 1 cái url nơi ảnh được lưu trữ trên website và client ref đến ảnh đó để hiển thị mà thôi. Thường thì trong object file dùng trường src=file.filename và alt=file.originalname
+Khi upload 1 ảnh xong tiếp tục ấn và upload lại ảnh cũ thì frontend sẽ k thực hiện bởi vì sự kiện onChange k diễn ra
+
+Bên cạnh đó ảnh ta cũng cần phải lọc request như thế nào k thể để ai cũng DDoS đăng ảnh lên server đươc => chưa làm được
+
+--> Dùng cloudinary với multer trực tiếp:...
+
+
+
+# Dùng cors: custom các trường header quan trọng về bảo mật
+-> Same Origin Policy (SOP) là chính sách làm tăng tính bảo mật của website bằng cách giới hạn truy cập tới tài nguyên của web chỉ cho các trang cùng domain. Tuy nhiên như v sẽ cản trở việc chia sẻ tài nguyên giữa các trang web k cùng trong 1 domain, gây khó khăn cho lập trình viên. Chuyện này xảy ra nếu browser truy cập vào 1 website mà server của website đó k cấu hình gì thêm vì SOP là tự động có trên hầu hết các trình duyệt hiện đại r. Điều này dẫn tới sự ra đời của Cross Origin Resource Sharing(CORS). 
+=> Tức là SOP nó cản mọi truy vấn khác domain, nhưng dùng cors lại cho phép điều đó
+
+Nếu truy cập đc thì web ở domain A sẽ truy cập được vào tài nguyên của domain B (đó là different origin). Request domain A gửi gọi là cross origin request.
+CORS yêu cầu server phải grant access resources cho các domain, với các middleware rời rạc ta có thể chơi kiểu domain này được dùng method GET ở 1 url, domain kia được dùng method POST ở 1 url, nhưng thg là dùng middleware chung thôi. 
+VD mô hình CSR truy cập vào API của 1 server từ frontend thì khi hosting frontend lên 1 domain thì server chỉ cần grant access cho domain đó.
+
+-> Bản chất cors:
+Nếu ta call API 1 website từ 1 domain của 1 website khác, vd vào 1 website bất kỳ mở F12 console lên gọi method GET tới 1 website khác thì origin là thứ lưu đường link của website client, nó sẽ mang url trên thanh địa chỉ của website đó. Nếu ta call API từ ứng dụng hoặc đơn giản mở tên trang web trên browser bth thì origin ở đây là undefined. Còn 1 TH nx là call API từ trang New Tab của browser như Edge chẳng hạn thì TH này k call đc luôn. Chú ý ta kp set với từng router của 1 trang web đâu, chỉ cần set 1 url đc thì các router con của nó đều access đc
+
+--> Các cấp độ để cấu hình cors:
+- Nếu ta k cấu hình cors j hết(hầu hết các website rơi vào TH này vd lovehands) thì mặc định nó dùng SOP, ta k thể truy vấn từ mọi origin website khác nhưng lại có thể truy vấn từ origin undefined or vào trang web của nó để tự call đến chính nó -> vd lovehands ta có thể dùng app qt để truy vấn or vào trang chủ lovehands để truy vấn nhưng vào facebook truy vấn đến lovehand thì k đc. NN là vì cors thuộc về bên trình duyệt ở chế độ security mode(default). Nếu ta truy vấn từ 1 domain undefined như app qt của ta thì k dùng trình duyệt nên k ảnh hưởng và cors cx k cản từ domain undefined nên vẫn dùng đc. 
+Tuy nhiên nếu ta k set core phía server mà dùng như này sẽ rất lỏng lẻo, developer thích thì có thể disabled security mode trên trình duyệt là xong or dùng các extension cho phép trình duyệt tự động có các header Allow-Access-Origin với các request là xong (thiếu header này nên các client khác mới k request đc). Nch là cách này có cx như k về bảo mật
+- Nếu ta cấu hình cors cho phía server với cách cors(<1 object>) or dùng như 1 middleware(như nhau) thì cors ta thiết lập header ở phía server nên cors của browser chả có vẹo gì(cors server đè cor browser), dù ta có dùng extension hay tắt security mode vẫn v thôi. Khi đó chỉ các trang web ta cho phép và origin undefined mới truy cập đc vào API, kể cả cùng domain cx k đc luôn. Cách này k cầm web url undefined được. VD: facebook dùng cách này đó, ta vẫn request nó được ở khi undefined, phải như v nó mới làm ra cái app messenger được chứ, nếu cấm undefined thì k làm đc.
+- Nếu ta dùng origin là 1 function như cách bên trên cors(<object có origin là 1 function>) thì ta có thể chơi kiểu lọc origin là gì nên quản lý đc kể cả origin là undefined ta cx cấm đc tùy ý ta
+
+=> Chính vì cách cuối quá chặt chẽ và các app origin undefined sẽ k truy cập đc nên k đc dùng phổ biến, nên họ thg dùng max là 2 cách đầu => các app ta dùng để truy vấn tới 1 website hầu hết là k bị cản trở bới CORS
+
+-> Có 2 loại request tới cors: simple request là các request k trigger cors preflight; preflighted request là các request có trigger cors preflight. 
+Preflighted request thì trước tiên sẽ gửi 1 request OPTIONS tới server cần gọi, server sẽ gửi response tương ứng lại với request này chứa các thông tin cơ bản sau đó mới gửi request thật sự ta cần, kiểu check trước ấy => k đi sâu
+
+-> Các headers:
+Access-Control-Allow-Origin là url có thể control được vào trang web.
+
+Access-Control-Allow-Credentials là quy định có include cookies hay k, nếu k sử dụng cookies có thể bỏ qua nó
+
+-> Cơ chế bảo mật:
+Vd thực tế: truy cập vào 1 trang web có mã độc, trang web đó sử dụng js để truy cập tin nhắn facebook ở 1 địa chỉ https://facebook.com/messages chẳng hạn. Nếu đã đăng nhập facebook từ trước rồi thì trang web độc hại kia có thể lấy bất cứ thông tin nào nó muốn. Nhưng trong các trình duyệt hiện đại đều hỗ trợ same-origin policy là 1 policy cản trở việc truy cập ra ngoài domain đó hay nói đúng hơn là khi k config gì cả thì chỉ có origin chính nó và undefined mới truy cập được thôi. Thế nhưng trong web ta thường xuyên phải truy vấn đến các domain khác để lấy dữ liệu. Lúc đó ta phải dùng đến CORS, nó sử dụng các http header thông báo cho browser rằng 1 ứng dụng web này có thể truy cập đc vào tài nguyên web khác, domain khác mà k bị cản trở bởi same-origin policy. VD: foo.com muốn truy cập vào bar.com để lấy thông tin(thực hiện bằng js sử dụng XMLHttpRequest). Các trình duyệt cài same-origin policy làm cho điều đó k thu đc dữ liệu gì trừ khi máy chủ trả về các response có headers CORS phù hợp.
+
+Liệu cách hack trên có khả thi: đa phần các server k thao tác với cors nên ta có thể truy cập được API của bất cứ trang web nào tại bất cứ trang web nào trên máy ta bằng extension chẳng hạn. VD ta tạo ra 1 trang web có mã độc -> client vào -> ta gửi request tới facebook của họ -> nhưng điều này lại được thực hiện trên máy họ mà máy họ thì k tắt cors và lại mặc định có cors và sop cho nên request sẽ k thành công. Giả sử ta chơi kiểu js mở 1 window mới vào facebook của họ(giả sử họ đã đăng nhập từ trc) rồi truy vấn tài khoản mật khẩu của họ từ cửa sổ mới đó có thể được, thực tế các trang lớn thì tk mật khẩu luôn dùng pp bảo mật riêng nên k có request nào xem được mk đâu -> nên cx k đc. Tuy nhiên rõ ràng là nếu ta query vào các trang web k set cors thì hack vẫn là khả thi vì k có trang web nào tự chặn domain của chính nó cả vì thế web sẽ k tự query tài nguyên được
+
+-> Dùng cors trong dự án
+Cách 1 ta chỉ cần thêm header vào là xong nếu chỉ cần mỗi access-control-allow-origin
+Cách 2 là sử dụng package: npm install cors thì setup nhiều thứ
+
+=> refer tới "Projects / Tinkerbellgarden"
+
+
+
+# Dùng compression
+-> Middleware giúp nén data lại trước khi gửi cho client. Dùng khi gặp vấn đề về kích thước quá lớn nhưng vi xử lý lại mạnh
+
+
+
+# Các package khác liên quan tới server
+-> http-errors: module tạo ra error với các mã lỗi của website, dùng nó trong 1 middleware để pass nó tới error handler tiếp theo.
+
+-> cookie-parser: Thư viện lấy cookies truyền vào từ phía request
+=> Thư viện chính giúp thao tác toàn quyền với cookie của web SSR nodejs
+Xem cookie bằng tab application -> cookies trên trình duyệt
+
+-> morgan: thư viện log lại lịch sử gỡ lỗi và các request của user
+
+-> debug: thư viện như hàm console.log
+
+-> Dùng ngrok: có ứng dụng và cũng có package nodejs để dùng
+ngrok muốn dùng phải có tk để nhận token => mặc định chỉ dùng ứng dụng, k dùng package
+
+-> Dùng localtunnel: package như ngrok nhưng nếu dùng trong code thì nó tiện hơn nhiều, chạy 1 cổng luôn và k cần 1 redis-server, 1 redis-client cồng kênh
+
+-> Dùng Joi: thư viện giúp xác định check type kiểu data của 1 object
+
+-> Dùng http-status: thư viện thao tác với các loại status http
+
+-> Dùng validator: giúp check có phải email hay không chẳng hạn, tập hợp các type check có sẵn
+
+-> Dùng express-flash + express-session: thư viện tạo flash message cho web nodejs
+
+-> Dùng method-override
+
+
+
+# Dùng dotenv
+process.env là 1 biến mt lưu các biến mt, có các giá trị có sẵn or thêm vào thông qua thư viện dotenv để thêm các thông tin bảo mật k public lên các repo
+
+-> npm i dotenv -> const myEnv = require('dotenv').config(); ở 1 file càng sớm càng tốt -> dùng process.env.<key>
+
+Theo thống nhất khi lập trình nodejs thì file .env ko được commit lên host theo git. Ng ta đặt nó trong .gitignore thì mỗi lần commit git sẽ k tính file .env
+Có thể dùng nó để chuyển qua lại giữa các môi trường. VD ở môi trường này thì đường dẫn như này, môi trường khác thì đường dẫn lại khác 
+=> const dbURL = process.env.DB_LOCALHOST || process.env.mLab_URL; thì định nghĩa 2 cái đó trong .env hết
+VD lúc test thì chạy trên môi trường này, deploy lại trên môi trường khác với link database khác nhau chẳng hạn
+
+-> Dùng dotenv-expand
+npm i dotenv-expand -> require('dotenv-expand').expand(myEnv); -> dùng bth
+
+-> Dùng cross-env: có thể dùng quyết định môi trường nào ngay trong command. Nó còn ghê gớm khi tự động lấy tên file chuẩn trong config
+
+
+
+# Dùng nodemon: 
+npm install --save-dev nodemon => auto reload server on save file
+(--save-dev sẽ chỉ cài trên môi trường development còn --save cái trên cả development và production) 
+-> thêm script trong package.json VD "start": "nodemon app.js" -> chạy với npm start
+
+-> Dùng concurrently
+Khi cần chạy song song client và server cùng lúc chỉ bằng 1 lệnh
+=> refer tới "ReactOther / Full client and server"
+
+
+
+# Dùng cURL
+cURL là 1 thư viện giúp truyền dữ liệu qua nhiều giao thức khác nhau với hầu hết các phương thức API hiện có thông qua cmd. Ta có thể thực thi nhanh các câu lệnh curl với: curl -X GET "http://localhost:3000/<>" 
+
+Trong NodeJS có lỗi A parameter cannot be found that matches parameter name 'X' => cái này là lỗi do OS đã được set từ trước cái curl như 1 alias(bí danh) để invoke-webrequest. Ta phải xóa cái set từ trước đó đi với: remove-item alias:\curl là có thể dùng đc bth
+VD dùng nó để POST nhanh tới 1 server luôn chứ kp viết lại cả hàm fetch dài vc
+
+-> Các lệnh:
+GET: curl -X GET "http://localhost:<port>/<>" 
+
+POST object: curl -d "param1=value1&param2=value2" -X POST http://localhost:<port>/
+POST object explicit: curl -d "param1=value1&param2=value2" -H "Content-Type: application/x-www-form-urlencoded" -X POST http://localhost:<port>/
+POST data file: curl -d "@data.txt" -X POST http://localhost:<port>/data
+
+POST JSON object: cái bên trên mà thêm -H 'Content-Type: application/json' là thành gửi json thôi => k gửi được nested object mà nếu muốn phải request nhiều lần dần vào bên trong. Or nhét vào 1 file r dùng như dưới
+POST JSON file: curl -d "@data.json" -X POST http://localhost:3000/data
+
+
+
+# Dùng nodemailer
+Module này hỗ trợ nhiều thứ trong đó có giao thức SMTP
+
+-> Tạo app gửi mail trong nodejs, dùng code nodemailer bth:
+Khi truy cập vào gmail để gửi thông tin đi thì gmail sẽ chặn, để nodemailer hoạt động được thì:
+-Với tài khoản bth chỉ có 1 lớp bảo mật: ta phải bật quyền truy cập của ứng dụng kém an toàn của google account trong mục bảo mật
+-Với tài khoản xác minh 2 lớp(vd qua số đt nx): bảo mật -> App Password -> Sign in password -> SelectApp -> Other -> gõ tên mật khẩu -> sinh ra 1 password mới thay thế cho password hiện có để ứng dụng có tên đó truy cập vào đc gmail của ta, VD: nodemailer
+
+
+
+# Dùng mssql: Thư viện giúp connect tới SQL server
+2 cách connect: dùng hàm connect trực tiếp / dùng ConnectionPool
+
+=> refer tới "ReactOther / Full client and server"
+
+-> Tạo config để connect: dùng connection string / dùng config object của JS
+Cách kết nối với Microsoft SQL Server trong NodeJS Server: trỏ đến thư mục code server đó => npm i mssql
+Tương tự như các thứ khác có 2 cách kết nối. 1 là dùng string connection, 2 là kết nối theo Config Object => kbh dùng cách 1 vì k rõ ràng
+Trong các ngôn ngữ liên kết với SQL server, có cái SQL Parameters như ASP.NET, PHP, NodeJS,... có hỗ trợ dùng để chống SQL Injection. 
+VD1: dùng mssql check type chuẩn rồi mới truyền vào query
+let result = await pool.request()
+            .input('input_parameter', sql.Int, value)
+            .query('select * from mytable where id = @input_parameter');
+VD2:
+let result = await connection.query({
+  sql: 'SELECT * FROM `books` WHERE `author` = ?',
+  timeout: 40000, // 40s
+  values: ['David']
+}
+
+-> Cách config SQL Server trong window kết nối được với mssql(hoạt động tốt vào năm 2022):
+Để tạo tài khoản mật khẩu và sử dụng:
+rightClick vào server-> property-> secure-> SQL Server and Window Authentication mode vì tk mk thì phải dùng mode SQL Server nx
+Vào SQL bằng window authentication(là nơi tạo ra các user) -> security -> rightclick login -> new login -> SQL Server authentication -> gõ password; server roles -> mặc định có public tức là tài khoản cho mọi người -> ta nên dùng tài khoản cho người và chỉ có 1 user tên là sa có quyền sysadmin mà thoi; User mapping: chọn các database muốn truy cập bởi user này -> check các quyền db_datawriter và db_datareader là các quyền cơ bản nhất đọc và viết với database, để 2 quyền đó hoạt động thì phải là chủ của database tức check thêm db_owner(k check sẽ lỗi); Status: grant và enabled; => ok
+Restart lại server này; cmd computer management -> Services and Applications -> Services -> refresh lại SQL Server Browser, agent và service;
+-> Có thể vào database với từng tài khoản r, tk đó chỉ truy cập vào được những database ta đã set mà thôi
+
+Để dùng đc server ta cần setting lần đâu(các lần sau k cần làm phần này nữa): computer management -> services and applications -> services -> start các thứ SQL Server Browser, SQL Server, SQL Server CEIP services; -> SQL Server Configuration Manager -> SQL Server Services-> start SQL Server Browser; -> SQL Server Network Configuration -> Protocols for SQLEXPRESS -> enabled cái TCP/IP -> IP Addresses -> active và enabled yes -> TCP Dynamic Ports blank -> TCP Port 1433
+Mỗi khi xóa hay làm gì trực tiếp trên database thì phải luôn luôn restart lại database và nếu có thể thì cả trong computer management.
+
+
+
+# Dùng lodash
+-> refer tới "## ReactJS / # Dùng các thư viện chức năng / Dùng lodash"
+
+
+
+# Dùng jsonwebtoken:
+=> refer tới "Web3 lib / Sign message web3"
+
+
+
+# Dùng socketio
+Bắt sự kiện qua lại với cả socket của client và server, broadcast, tạo namespace room.
+
+Socket.io là 1 module của nodejs giúp giao tiếp server client tức thì nhanh và chiếm ít tài nguyên. Nó đc phát triển để sử dụng các kết nối mở để giao tiếp thời gian thực. Cả máy khách và máy chủ đều tích hợp socket.io mới đc. Socketio khá giống websocket nhưng chiếm ít tài nguyên hơn. Socketio thường dùng cho các ứng dụng realtime như chat kênh, tạo phòng,.. Socket.io xây dựng dựa vào Engine.io, trước tiên khởi chạy long-polling để kết nối, sau đó dùng các phương thức giao tiếp khác tốt hơn giống như websocket. Nên khi code ta cứ bắn sự kiện qua lại thực chất là subscribe long-polling
+Ưu điểm: bảo mật, tự động kết nối lại, phát hiện ngắn kết nối, hỗ trợ mã hóa nhị phân, hỗ trợ tạo kênh và phòng.
+=> Nếu dùng nodejs và react bình thường thì rõ ràng phải reload lại trang thì web mới bắt được data từ server trừ khi ta subscribe thủ công bằng cách gọi setInterval mỗi s fetch data từ server 1 lần để update. Làm như v là k nên mà nên dùng thư viện socketio hiện thực hóa điều đó
+
+-> Polling
+Polling là kỹ thuật client gửi request yêu cầu dữ liệu từ server regularly. Tức là server thay đổi thì client thay đổi thì ta cho client liên tục request tới server có thay đổi thì cập nhập, k thay đổi thì k làm gì. Để bắt được sự thay đổi của server càng sơm thì ktg polling càng ngắn càng tốt. Có một nhược điểm là: nếu khoảng thời gian này càng ngắn, trình duyệt của máy khách sẽ đưa ra nhiều yêu cầu hơn, trong đó có những yêu cầu sẽ không trả về bất kỳ dữ liệu có ích nào khiến cho băng thông bị hao tốn và xử lý tài nguyên vô ích.
+
+Long-polling ra đời nhằm khắc phục nhược điểm của polling với ý tưởng: client gửi 1 request và server giữ lại request đó và sẽ response khi có 1 sự kiện tương ứng diễn ra. Nhưng sẽ có Th request client có 1 timeout, khi hết timeout nhưng vẫn chưa có sự kiện mong đợi nào thì server buộc trả về 1 response mà chả có dữ liệu có ích nào, nhưng tốt hơn polling thuần nhiều rồi.
+Short-polling là client gửi cho server lặp lại sau 1 khoảng thời gian cố định. Server sẽ buộc gửi trả null or dữ liệu nếu có sự kiện tương ứng. Nó chính là kỹ thuật polling thuần.
+=> Mấy cái polling bth đều có thể gây nghẽn mạng 
+
+-> Cài đặt:
+npm install --save socket.io => cài trên socket.io
+npm install --save socket.io-client => thư viện socket io trên client tự tạo khi khởi tạo trên server link tới bằng: <script src="/socket.io/socket.io.js"></script>  
+
+
+
+# Dùng json-server(bản chất của server)
+json server là server trả về dữ liệu dưới dạng json đơn giản. Đây là mô hình demo cho 1 server(k áp dụng trong thực tế) để test các chức năng, có thể tạo cực nhanh. Để dùng: npm install -g json-server => -g giúp cài package ở level hệ thống. Chỉ cần có 1 file data.json là được, k cần cài json-server
+-> Tạo 1 file db.json trong dự án là database chứa data dưới dạng object cần dùng cho dự án => Chú ý lưu theo kiểu các giá trị ở tầng đầu tiên chính là thứ hiện lên theo router và level 2 là trường id
+-> json-server --watch <link đến file db.json> --port 4000 -> nếu file db.json k tồn tại, nó sẽ tự tạo 1 file db.json mặc định => watch là chế độ xem, server sẽ xem xét các thay đổi và cập nhật kết quả vào API phù hợp
+-> Thế là có 1 server với database ở 1 cổng mà ta set -> nó sẽ tự chia ra các route khác nhau cho mỗi item trong object của file db.json
+-> Để lấy data từ server thì chỉ cần link đến đó trong giao thức GET và POST
+Có website cung cấp json-server miễn phí truy cập bất cứ lúc nào, vd như https://jsonplaceholder.typicode.com/posts
+-> Các giao thức CRUD trên json server-cx được làm sẵn theo 1 chuẩn nhất định rồi. Ví dụ cần thêm 1 element với axios thì ta cứ post cái object element mới là nó hiểu.
+
+-> Chạy server: json-server --watch data.json thì có thể tùy ý gọi: 
+GET    /employees
+GET    /employees/{id}
+POST   /employees
+PUT    /employees/{id}
+PATCH  /employees/{id}
+DELETE /employees/{id}
+=> PUT và PATCH đều là cập nhập. PUT phải gửi bản ghi đầy đủ nếu k đủ thì các trường k có lập tức là NULL. PATCH chỉ thay đổi những field được yêu cầu thay vì toàn bộ record
+=> POST, PUT, PATCH phải có trường Content-Type: application/json trong body
+=> json server sẵn tự cho phép các truy vấn: 
+Lọc:
+GET /employees?firstName=”Hoàng”&amp;lastName =”Phan”
+GET /employees?id=1
+GET /employees?profile.email=khanh.le@codegym.vn
+Paginate:
+GET /employees?_page=7 
+GET /employees?_page=7&amp;_limit=20
+sort:
+GET /employees?_sort=firstName&amp;_order=asc
+GET /employees/1/?_sort=firstName&amp;_order=desc
+sort nhiều trường
+GET /employees?_sort=firstName,lastName&amp;_order=desc,asc
+
+-> Tổng kết các loại server nhanh:
+Có 2 loại server nhanh có thể dùng trong NodeJS là json-server và lite-server. Tuy nhiên đó chưa phải là tất cả, chung quy lại kiểu server NodeJS mà ta đang nói tới cũng chỉ là: có khả năng cung dùng trong ứng dụng và có thể fetch được từ bên ngoài thông qua các gói http request như curl, http, browser. Chứ 1 file js kể cả chứa 1 biến lưu json data và dùng chung trong dự án xong ta update bằng các công cụ read, write file thì k thể coi nó là 1 data server được. Vì k truy cập được từ bên ngoài thì chung quy lại cũng chỉ là 1 data dữ liệu bình thường. 
+VD 1 file ảnh trong NodeJS ta có thể import or fetch được. Rất ảo là fetch của nodejs nó cho phép fetch cả data ở local nên 1 bức ảnh không không gọi là 1 server mà chỉ là 1 cách lấy ảnh khác mà thôi. Tương tự 1 file json mà ta có thể truy cập thông qua url trên trình duyệt gọi vào hệ thống file trong máy cũng k gọi là 1 server vì curl k thể gọi outside. Nhưng json-server chuẩn thì có nếu ta config router cho nó gọi được từ global internet:
+
+--> Json Server: cài -> cho watch; có thể tạo json-server qua các tool online trên mạng thì nó auto bật 24/24 luôn
+
+--> Lite Server: cài -> viết file config -> cho run là được
+=> Vc ta dùng file json làm server có yêu cầu là file json k được quá to vì server này kp là 1 máy chủ vật lý chuyên về lưu dữ liệu và lại còn lưu dạng file.
+
+=> Tiêu chuẩn gọi là 1 serveer: handle được http request được call từ bên ngoài, data có thể được update vĩnh viễn khi xử lý request.
+
+-> Tổng kết các cách lưu và lấy data ngay trong dự án, có thể or kp là 1 server: 
+2 loại server bên trên và các loại server khác như mssql nhưng có thể k cần phải mở chạy ở cổng nào mà chỉ cần fetch trực tiếp đến địa chỉ file json đó trong dự án. Cả browser còn mở được, có thể require file json trong nodejs or import file json trong javascript => nếu dùng server thực để fetch thì data có thể thay đổi, nếu dùng require import thì data reset sau mỗi lần chạy lại dự án
+1 file js nhưng lại lưu data json dưới dạng string vào 1 biến sau đó import hay script vào và dùng parse với stringify để lấy => data reset 
+Lưu data vào file và dùng pp đọc ghi bình thường => data thay đổi thực nhưng chả ai dùng cách này vì k chuẩn
+
+-> Tổng kết các cách fetch data bằng API, chứ kp là lấy data ở local import, fetch hay require:
+Commandline: curl, http
+Browser: fetch
+NodeJS: node-fetch, axios
+React, html: axios, fetch webAPI
+
+
+
+# Tối ưu server NodeJS
+Công cụ Chrome V8 của google là 1 javascript engine mã nguồn mở. Bên trong có thư viện UV viết bằng C++ chịu trách nhiệm quản lý các hoạt động IO k đồng bộ trong NodeJS. Nó giúp thực hiện các thao tác IO nặng nhất như compression, io file, mã hóa,... 
+Dùng ThreadPool trong NodeJS tận dụng thư viện C++ tích hợp để truy cập vào phần cứng dùng tối ưu con chip đa nhân sẽ có thể tăng tốc cho NodeJS đến 3 lần nhưng máy cùi chỉ có 4 thread thì đừng hy vọng
+
+
+
+# Các pattern
+
+
+
+# Backdoor
+-> Cách tạo: đơn giản là dựng 1 server bắt thông tin của người dùng lưu vào database riêng. Server thực tế mà người dùng tương tác với sẽ có 1 middleware ẩn. Middleware này được chạy khi có bất cứ request nào được gửi đến. Cụ thể middleware này sẽ gửi thông tin của người dùng tới cái server ẩn của ta. 
+=> Tức là bằng cách này ta tạo ra backdoor lưu thông tin về mọi request mà người dùng gửi tới. Trong request đó có thể chứa những thứ quan trọng như tài khoản mk, các lệnh cmd hay gì.
+
+VD: Ta tạo ra 1 package là logger và những người khác khi dùng package của ta thì package này sẽ bắt thông tin của người dùng và gửi lại về server của ta
+Cơ chê: user dùng package của ta là 1 middleware ở giữa sau khi người dùng gửi request và trước khi server trả ra két quả -> logger middlware sẽ bắt data từ người dùng -> gửi nó về cho server của hacker r tiếp tục thực hiện tiếp như bth -> server của hacker nhận được sẽ parse và in ra.
+
+Trong NodeJS, backdoor có thể bị ẩn bên trong or là mã kế thừa cũ. VD: ta sử dụng 1 gói npm phổ biến A, trong gói A lại dùng package B, trong B có C nhưng thư viện C là 1 thư viện có backdoor mà chưa ai biết đến
+=> đóng gói và cung cấp ít quyền nhất có thể, chỉ sử dụng các gói nổi tiếng, mã nguồn mở, sử dụng các công cụ giám sát các gói tin gửi đến máy chủ có gì lạ không
+
+-> Backdoor là 1 cổng không public cho phép 1 người xâm nhập vào hệ thống.
+Mục đích là để lấy thông tin người dùng sử dụng phần mềm; có thể thực hiện hành động nào đó như gửi thông tin đó lên server,..
+
+Backdoor có thể được nhà phát triển xây dựng có chủ đích or do hacker tạo ra, tìm ra vì k public chỉ là họ không biết chứ nếu biết thì vẫn truy cập được. Nhà phát triển là quản trị nếu không có mục đích xấu thì họ làm vậy để có thể tự mình xâm nhập vào hệ thống sửa lỗi và bảo dưỡng. Nó cũng là cổng bí mật mà hacker xâm nhập bất hợp pháp nếu bị lộ.
+Nó như kiểu xâm nhập vào hệ thống không qua tuyến đường cần được bảo mật
+Nhiều nơi, chính quyền còn bắt các nhà phát hành dịch vụ tạo ra các điểm truy cập là backdoor nhưng hợp pháp để nếu nhà nước dùng nó tìm ra tội phạm(Lawful Interception). Thông thường chỉ chủ phần mềm mới biết sự tồn tại của backdoor. Nếu backdoor bất hợp pháp tồn tại do nhà phát triển tạo ra thì được coi là bê bối. Còn về client thì đương nhiên họ không muốn dữ liệu của họ có backdoor người khác xâm nhập vào r. 
+
+Backdoor cũng có thể do dev cùi tạo ra app có backdoor ngoài ý muốn nhưng dù loại gì thì cũng là 1 mối nguy cho hacker có thể chiếm quyền truy cập vào hệ thống.
+1 kiểu backdoor khác là attacker cài Trojan truy cập từ xa lên máy nạn nhân. Thêm các dòng backdoor mà nạn nhân k hay biết.
+
+Backdoor xuất hiện trong mọi phần mềm kết nối internet. Nếu 1 tin tặc có thể tìm ra cách vào phân mềm mà không cần thông tin đăng nhập thì có thể sử dụng công cụ này để phá hoại. Kể cả không thể tìm thấy backdoor, tin tặc cũng có thể tự tạo backdoor rồi lừa người dung thiết lập nó cho chúng. Thông thường kiểu lừa đảo này là nó lừa người dùng tải cái gì xuống sẽ có lợi cho họ. Sau đó, mã độc trong phần mềm cài vào đó sẽ tạo backdoor đến máy tin tặc. 
+Nhà phát triển cũng có thể chủ ý cài backdoor xong lừa công ty đối thủ dùng nó
+
+Tin tặc có thể sử dụng backdoor để theo dõi ai đó trong hệ thống mà không để lại dấu vết, sao chép dữ liệu. Nếu muốn gây thiệt hại, chúng có thể đưa vào phần mềm độc hại mà không kích hoạt hệ thống bảo mật, như v hắn phải hy sinh lợi thế bí mật của mình để cài phần mềm này thực hiện cuộc tấn công phá hoại.
+
+VD backdoor sử dụng với mục đích tốt: ta dùng anti virus sao nó báo cập nhập được. Thực tế, nó được cài phần mềm gián điệp liên tục gửi thông tin về version hiện tại cho server từ xa và server sẽ check phần mềm đó cần update không và người dùng nhận dược thông báo nếu có. Tương tự các phần mềm check bản quyền họ sẽ có chức năng kiểm tra xem người dùng có dùng sp có bản quyền không. Đương nhiên việc kiểm tra bắt buộc phải gửi request lên server r thì phải dùng backdoor.
+Các website có thể có backdoor để quản lý mã nguồn. Mỗi khách hàng được thiết lập cấu hình dùng riêng cho họ, nếu source đó bị dùng cho domain khác lập tức backdoor sẽ gửi thông tin lên server và thực hiện hành động thông báo nào đó kiểu "Bạn vừa đăng nhập ở 1 thiết bị lạ". Cx là để bảo vệ khách hàng thôi.
+Backdoor có thể dùng dự phòng khi gặp tình huống mà admin mất quyền truy cập dữ liệu thì backdoor giúp họ truy cập lại.
+
+Nhiều loại backdoor nguy hiểm có thể tự nhân bản hay tự che giấu để duy trì sự tồn tại kể cả khi người dùng đã phát hiện ra nó. Hay các backdoor trong các phần mềm chạy tiến trình trùng tên với các tiến trình trong hệ thống để không bị phát hiện
+VD Remote Administration Trojan (RAT) là loại backdoor cho phép hacker kiểm soát những máy tính bị chiếm quyền điều khiển, quản lý toàn bộ desktop, registry,.. rất khó xóa đi. Nó tồn tại 2 tp client(ứng dụng mà hacker dùng) và server(cài trên máy nạn nhân)
+
+Cách phòng: không sử dụng phần mềm không đáng tin(dù các phần mềm tin tưởng vẫn có thể ăn trojan), không truy cập vào website nguy hiểm, update window, các phần mềm diệt virus có thể bắt trojan, nên chạy ứng dụng trong môi trường đóng và cung cấp ít quyền nhất có thể.
+
+
+
+# Các hàm thao tác tự tạo
+isObject, mergeObject
+
+
+
+# Dùng nvm 
+nvm là tool trên window quản lý các phiên bản của nodejs. VD 1 dự án chạy v10, 1 dự án chạy v13 thì ta có thể đổi phiên bản dễ dàng thay vì phải xóa node cài lại, dùng cả Mac, Linux, Ubuntu. 
+Tải trên trang chủ -> Chạy lệnh:
+nvm install 16.17.1 64 => tải bản 16.17.1 của nodejs 64 bit
+nvm list => liệt kê các phiên bản nodejs có trong máy
+nvm use 16.17.1 64 => dùng bản nodejs nào
+
+
+
+# Dùng redis
+# Dùng tool
+# Dùng mongodb
+# Bảo mật đăng nhập
+# Bảo mật server nodejs
+
+# Module for project Tinkerbellgarden
+
+
+
+# Other
+-> Phân biệt 5 lĩnh vực:
+Front end: HTML, CSS, Javascript / Bootstrap, Material UI / Angular React Vue/ Webpack
+Backend: PHP, Python, NodeJS, Ruby on Rails, ASP.NET, DJANGO, Java(Spring)
+Database: (RDBMS) MsSQL, MySQL, Postgre / (No SQL) MongoDB, Cassandra, Elasticsearch, Redis, CouchDB / (Graph) Neo4J, ArangoDB / (Message Queues) Kafka, SQS, ZeroMQ, RabbitMQ / Oracle, Firebase
+DevOps: (Infrasstructure) AWS, Azure, NGINX / (Automation) Ansible, Chef, Jenkins / (Virtualization) Docker, BladeCenter, VMware, Vagrant, Kubernetes
+Android: (Android) Java, Kotlin, SDK / (iOS) Objective-C, Swift / (Cross platform) React Native, Ionic, Xamarin, Unity, PAW / Qt, QML
+
+-> Tổng quan:
+# Chia cấu trúc thư mục
+# Basic
+# Kiểu json
+# Event loop của NodeJS
+# Các package có sẵn trong NodeJS
+-> Dùng buffer
+-> Dùng fs: thư viện giúp đọc ghi file, đổi tên file, xóa file, mở file r đọc bằng promise
+-> Dùng events: thư viện thao tác với sự kiện. Stream cũng là 1 event emitter. Tạo kế thừa event emitter
+-> Dùng util: thư viện cung các utilities function
+-> Dùng http => ít dùng vì phức tạp
+-> Dùng zlib: thư viện giúp nén file
+-> Dùng path: thư viện thao tác với đường dẫn
+-> Dùng url: thư viện thao tác với url website
+# Các package backend NodeJS thường dùng
+-> Dùng node-persist: thư viện giúp tạo 1 global store
+-> Dùng yargs: thư viện lấy args khi chạy chương trình => ít dùng vì k có nhu cầu tạo app tương tác bằng console
+-> Dùng crypto-js: thư viện giúp encrypt và decrypt văn bản
+-> Dùng cheerio: thư viện giúp parse DOM giống jQuery
+-> Dùng rimraf: thư viện hỗ trợ xóa file và thư mục. 
+# Xử lý upload file
+## Các module quan trọng phía server
+# Dùng express: tạo server backend
+# Dùng multer
+# Dùng cors: custom các trường header quan trọng về bảo mật
+# Các package khác liên quan tới server
+# Dùng nodemailer
+# Dùng cURL
+# Dùng nodemon
+# Dùng socketio
+# Dùng dotenv
+# Dùng jsonwebtoken
+# Các pattern
+# Other
+
+

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.io Freetuts.net</title>
+</head>
+
+<body>
+    <!-- Thêm thư viện socket.io mà server cung cấp, nhờ nó mà dùng đc socket=io() -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Đây là file phía client nhận và hiển thị. Vì khi khởi tạo server thành công sẽ tự động sinh ra 1 thư viện 
+        cho client sử dụng ở địa chỉ http://localhost:3000/socket.io/socket.io.js -> ta phải dùng như này -->
+
+    <script>
+        // Khởi tạo kết nối phía client bằng socket -> sau đó có thể bắt các thay đổi của server
+        var socket = io(); // Lấy socket client từ phía server
+        socket.on('information', function (sender, data) { // Tham số 2 là callback function bắt data
+            console.log(sender); // Vì ta chỉ truyền 1 object là 1 tham số duy nhất nên lưu vào sender, data k có gì
+            console.log('information : ', data);
+        })
+    </script>
+</body>
+
+</html>

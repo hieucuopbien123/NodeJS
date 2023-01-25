@@ -1,0 +1,49 @@
+Bảo mật đăng nhập:
+
+
+
+# Cơ chế bảo mật tài khoản mật khẩu:
+Nếu ta dùng các thứ như firebase đăng nhập bằng google thì là 1 cách nhưng mật khẩu k nằm trong database mà chỉ là 1 dịch vụ của google. Ta chỉ xét tài khoản mật khẩu được lưu như thông tin của người dùng trong database.
+
+-> Hacker có thể tấn công bằng rất nhiều kiểu, database injection để lấy tài khoản mật khẩu từ database, XSS để gửi request độc hại tới server, lừa người dùng paste cái gì vào browser của họ để lấy cookies hay localStorage, tấn công phía client server hay database để lấy dữ liệu từ 1 trong 3 cái đó,... Ta k rõ có những kiểu tấn công nào khác nhưng khả năng là dùng cookies và localStorage k an toàn với data nhạy cảm. Có 2 kiểu tấn công XSS và CSRF có thể lấy localStorage và data từ server. 
+Thông thường ta dùng bảo mật SSL(để tránh giả mạo trang web giống nội dung), chống XSS, và Database Injection, rate limit chặn DDoS là tối thiểu rồi. Còn các kiểu tấn công và cách bảo mật khác k thể biết hết được.
+Nhiều bài báo viết là localStorage k lưu thông tin nhạy cảm nhưng thực tế họ vẫn lưu đầy ra và tấn công được cx kp dễ. Chỉ cần dùng thêm vài cơ chế bảo mật là được
+
+-> 2 cơ chế login của các trang web tự động đăng nhập:
+Để tự động đăng nhập thì phía client phải lưu 1 cái gì đó mà đã lưu ở phía client thì luôn có nguy cơ bị lộ. Với các trang web mỗi lần vào hay tắt browser đều bắt đăng nhập lại thì k nói làm gì, ta chỉ cần dùng sessionStorage or session cookie để lưu tạm thời thì k sợ hack. Nhưng với các trang web tự động đăng nhập thì là vấn đề khác.
+
+--> Với facebook họ dùng cơ chế Oauth với các cơ chế bảo mật riêng để client đăng nhập và nó lưu trạng thái đăng nhập vĩnh viễn trên 1 máy luôn mà k sợ bị hack. Cụ thể OAuth nó cho phép app truy cập thông tin mà chả cần đưa password vẫn xác thực được. Ta sẽ xét TH web cỡ trung bình, VD web bán hàng hay codeforce cho phép lưu mật khẩu trong 1 tháng r bắt đăng nhập lại chẳng hạn:
+C1 cookies: client đăng nhập lần đầu tiên sẽ gửi tới server, server check xong gửi lại cho client 1 đoạn mã sig xác thực và đoạn mã này được lưu trong cookies của trình duyệt client. Mỗi lần client làm gì thì gửi request lên server kèm theo sig để xác thực là đúng là họ gửi. Để cái sig đó trong cookies thì k an toàn và họ dùng tool http-only để bảo mật cookies. Nó chỉ cho phép gửi đoạn mã cookies được chọn cho cái server đã gửi đến cái cookies đó và đoạn cookies này k thể truy cập bằng JS. VD cái techfi ta thử lấy cookies bằng JS sẽ thấy mất trường sig và khi gửi request lên server thì có trường sig để xác thực. Cách bảo mật này khá tốt. Ta dùng thêm SSL và HTTP Flag kèm để bảo mật.
+C2 jsonwebtoken: client đăng nhập thì jsonwebtoken gửi lại 1 đoạn token được hash từ cái mật khẩu cho client lưu vào localStorage. Mỗi lần client làm gì thì gửi kèm cái token đó để xác thực thông tin đúng là họ. jsonwebtoken sẽ tạo ra 1 hash từ mật khẩu kèm với 1 SCRETE_KEY được lưu trong file .env kbh được public. Tài khoản và mật khẩu gốc của người dùng được lưu trong database như bình thường và chống injection và giới hạn chỉ IP server mới truy cập được. Khi người dùng thao tác, server nhận token dùng SECRETE_KEY để tạo ngược lại password để check trong database nếu tồn tại thì mới cho thao tác tiếp. 
+Nếu hacker có được tài khoản và password do người dùng để lộ. Nó tự vào bằng web luôn đăng nhập vào lấy token là xong. 
+Nếu hacker chỉ hack được localStorage để lấy được token, nó sẽ nhét cái đó vào request và tự tạo gửi đi để lấy thông tin về user.
+Tức là việc lộ token cũng y như lộ tài khoản mật khẩu v, do đó họ cho mỗi token 1 cái expired date để sau 1 khoảng tg hacker có hack cũng k dùng được nx. Kiểu sau 1 tháng yêu cầu người dùng đăng nhập lại chẳng hạn thì sẽ sinh token mới có gắn với timestamp hiện tại(để cho token bị khác đi). Chính vì cái expired date này mà các trang web tự tin lưu data vào localStorage.
+Tuy nhiên để tăng bảo mật họ dùng 2 loại token là refresh token và access token. Họ cho accesstoken đi cùng mọi request tạm thời của user và chỉ tồn tại 10-15p còn refresh token có expired date dài hơn. Sau môi khoảng thời gian thì accesstoken quá hạn và phải dùng refresh token truyền vào để lấy tiếp accesstoken. Cả 2 token đều được lưu trong localStorage nên điều này chỉ tăng bảo mật ở chỗ: access_token được truyền đi liên tục với mỗi action của user, để tránh lộ token quá trình truyền thì chỉ là accesstoken, trong khi refresh token chỉ cần truyền khi user lấy access_token thì sẽ bảo mật an toàn hơn cho refresh token. Nếu lộ refresh token cx như lộ mật khẩu v nhưng chỉ trong k expired time. Các hệ thống chú trọng hơn về bảo mật sẽ dùng thêm các biện pháp bảo vệ token này.
+Nếu database bị injection thì khả năng là nó delete database luôn chứ k chỉ là lộ mật khẩu. Tuy nhiên để an toàn hơn nếu mật khẩu bị lộ từ database, họ có thể hash mật khẩu trước r mới lưu vào database. Code của việc hash này được thực hiện trong server(chả cần secretkey gì vì k có nhu cầu tạo ngược lại). Hacker k thể xem code trong server được nên điều này là an toàn, thành ra mỗi lần check gì liên quan đến password trong database phải hash nó để so sánh. Nếu database lộ password ra thì toàn mã hash k thể lấy được mật khẩu thực tế và cx k thể hash ngược lại được
+
+Vc lưu vào redux state cũng là 1 kiểu lưu session mà restart là mất hết, nó cx k an toàn, thật ra session thì chả lo người dùng bị lộ mà sợ chính người dùng hack từ phía frontend thì đúng hơn. 
+
+Trong trava ký message profile leaderboard: Người dùng ký bằng ví sẽ sinh ra 1 signature kèm nonce, mỗi lần ký là có 1 signature khác nhau. Gửi signature đó tới server để server check rồi dùng jwt mã hóa ra jwtToken và sinh cả refreshToken cho nó. jwtToken có thời gian tồn tại ngắn được lưu trong localStorage, refreshToken có thời gian tồn tại dài cũng lưu trong localStorage.
+Cơ chế lại quay về TH2 bên trên. Thực tế k cần lưu signature vào localStorage vì chả cần dùng mà lưu thì cũng chả sao vì mỗi lần ký sinh cái khác thì lần ký sau sinh sig mới gửi tới server sẽ làm stale các cái jwtToken refreshToken cũ
+Hack được đã rất khó mà kể cả hack được thì cũng chỉ đọc chứ k change state được. Nch là tùy TH mà dùng được như v, tức là server k cần xử lý phức tạp gì ở TH này.
+
+
+
+# Dùng jwt:
+Thư viện giúp sign, verify message
+
+-> Dùng passport + passport-jwt kết hợp: sẽ dùng jwt như 1 strategy làm đơn giản code hơn
+
+
+
+# Dùng Passport:
+Dùng passport: mỗi request đến 1 url dùng passport thì ta viết code cho nó check đúng sai hiển thị lỗi hay thành công
+
+Quy trình: require và initialize nó, viết use cho passport, dùng authenticate trong url
+
+-> Dùng passport-jwt: strategy thay thế cho jwt verify
+
+-> Dùng passport-local: strategy xác thực username password
+--> Dùng passport session
+
+

@@ -1,0 +1,19 @@
+html
+    head
+        title Fretuts.net
+    body
+        block header
+        block body
+        block footer
+        //- các thứ khác phải xuống dòng, kể cả id
+        #footer
+            p bi thay the
+            mixin list(first, second, third)
+                ul
+                    li=first
+                    li=second
+                    li=third
+            +list('free', 'tuts', '.net')
+            +list('lap trinh', 'nodejs', '.tai freetuts.net')
+            p some footer content
+//- k dùng mixim trong file pug dùng extends 1 file khác

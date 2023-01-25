@@ -1,0 +1,54 @@
+Các package phổ biến trong Ct NodeJS cơ bản:
+node-persist: lưu data vào storage file như localStorage
+yargs: thao tác với command line và args
+crypto-js: để encrypt và decrypt
+Buffer có sẵn thao tác với từng byte và các kiểu encode
+fs có sẵn thao tác với file trong nodejs
+events có sẵn thao tác với events trong NodeJS
+util có sẵn của NodeJS truy cập vào utility functions như cho 1 class kế thừa 1 class khác
+cors: kiểm soát web url nào được truy cập
+request-promise: gửi request tới trang web và lấy được phân tích thẻ body của nó
+cheerio: phân tích html trang web để crawl data
+zlib: nén file với stream
+http có sẵn tạo server mở trên 1 cổng
+dotenv: biến môi trường
+querystring có sẵn để phân tích body của request deprecated
+formidable: giúp parse form và upload file, đi thẳng vào file temp của file đó mà làm gì, có thể copy ra thư mục nào ta muốn
+express-formidable: giúp parse form trong express k lưu lại mà thao tác thông tin của file trong trường req
+multer: handle uploading file lưu trong ổ cứng và cũng thao tác với thông tin qua req
+mv: move file trong hệ thống
+url có sẵn của nodejs thao tác với url
+cookie-parser phân tích cú pháp cookie
+nodemailer: package giúp gửi mail tự động
+pug: viết html nhận biến số trong nodejs
+nodemon: chạy server tự restart khi có sự thay đổi
+socket.io: subcribe connection 
+jest: package test và mock cho nodejs
+mounteBank: test 1 server hoàn chỉnh nhưng rối
+axios: request
+
+
+Các hàm về req:
+req.on("data", <>) bắt từng chunk data của request gửi tới -> http
+req.on("end", <>) bắt khi data gửi tới xong -> http
+req.cookies -> cookie-parser
+req.files.fileSend.name/path/length/size -> express-formidable
+req.fields -> express-formidable
+req.header("key") 
+req.protocol/hostname/path/originalUrl/subdomains/body/query/params/url/method
+
+Các hàm về res:
+res.header("key", "value") set giá trị header
+res.json(<>) gửi lại data tương tự json convert sang json
+res.writeHead(200, { "key": "value" }) viết vào header -> http
+res.write(<>) viết data html -> http
+res.end(<>) kết thúc xử lý res kèm với 1 data cuối có thể là string, file, error, html,..
+res.setHeader("value", "value") writeHeader sẽ đè lên setHeader nếu trùng
+res.render("file view engine", <data truyền vào view engine>)
+res.redirect("url"); forward request tới /users. Có thể là res.redirect(404, "url")
+res.cookie(key, value, { options }) set cookie lại user -> cookie-parser
+res.send("data string")
+res.status().send(<>) send kèm mã lỗi
+res.clearCookie("key") -> cookie-parser
+res.sendFile("đường dẫn tuyệt đối dùng path")
+

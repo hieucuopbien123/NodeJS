@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.io - Broadcasting</title>
+</head>
+
+<body>
+    <p id="msg"></p>
+    <div id="noti"></div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!-- phải script tới jQuery -->
+
+    <!-- Mặc định file này nhận được từ phía server thì base url là url của server rồi. Ở đây mặc định 
+        tự hiểu là http://localhost:3000/socket.io/socket.io.js -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        var socket = io();
+        console.log(socket);
+        socket.on('new msg', function (data) {
+            console.log("a");
+            $('#msg').text(data.msg)
+        })
+        socket.on('new noti', function (data) {
+            $('#noti').append(data.msg + '<br>')
+        })
+    </script>
+</body>
+
+</html>

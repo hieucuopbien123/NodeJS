@@ -1,0 +1,134 @@
+-> Các package chung:
+chalk: style text trên terminal
+figlet: in chữ to
+marked + marked-terminal: in ra theo chỉ định mark cái gì
+morgan: hiển thị thông tin về request của user khi request đến server
+clear: clear terminal
+cheerio: thao tác với DOM đã có bằng cú pháp của jQuery, thg dùng làm crawler website thôi
+webpack: 
+ejs: là package giống Pug(hay trước là Jade) là 1 view engine có thể dùng thay thế file html trong NodeJS. Nếu dùng mới học
+compression: khi nodejs server gửi lại data cho browser ta bật tab network sẽ thấy data càng nhiều thì kích thước càng lớn. Nhưng kích thước càng lớn thì lấy càng lâu và giảm hiệu suât. Package này sẽ nén lượng data đó lại và gửi cho client lại lấy ra được, check size có thể nhỏ đi đến 300 lần
+history: package history là để phục vụ cho vc dùng react-router-dom tạo listen Router ở v6
+connected-react-router: giúp đồng bộ react-router v4, v5 với state redux
+
+cross-env: 
+Trong linux ta có thể chạy 1 ct ở production mode với lệnh: NODE_ENV=production node myapp/app.js => nhưng trong window set có thể gây lỗi VD NODE_ENV=production. package này giúp làm việc đó rất dễ dàng. Khi dùng webpack thg có cái này specific môi trường. Họ thg làm kiểu:
+development: fake nhiều user và data, chạy bằng nodemon cho nhanh
+production: chưa có user nào, chạy bằng node bth
+Ta dùng nó trong câu lệnh chạy bth và bên trong app có thể tùy ý lấy ra hiện tại đang là môi trường nào. Thg có 3 môi trường development, production, staging(môi trường bản sao gần đúng của production để kiểm thử phần mềm, check code, các bản build và update)
+Họ chơi kiểu tạo ra lucene-query-parsercác biến config riêng cho developement và check nếu là server thì ghi đè lên biến config đó là gì. Tạo ra file riêng lưu data cho production và development tùy TH nào mà lấy.
+Thực tế chả cần cross-env cũng được mà dùng file .env với dotenv bth vì ta có thể cần lưu nhiều thứ hơn là chỉ NODE_ENV và cái NODE_ENV có thể lưu trong .env cũng được. VD trava ta lưu loại mạng là mainnet hay testnet để lấy config đúng. 
+config: lấy file config tùy vào MT
+
+helmet: bảo mật ẩn ngôn ngữ trong NodeJS server. Chú ý phân biệt với react-helmet
+fontfaceobserver: dùng font chữ => đã biêt
+hoist-non-react-statics: copy static method của component vào 1 component khác
+immer: copy thay đổi immutable state sang biến mới => đã biết
+react-intl: format các thứ theo 1 ngôn ngữ => đã biết
+intl(Internationalization): cũng format theo locale => đã biết
+invariant: log error => đã biết
+ip: lỗi thời k dùng được nx
+public-ip: lấy ip của máy hiện tại => đã biết
+lodash: cung hàng loạt các hàm liên quan đến type, danh sách của nó cực kỳ dài đủ loại type và rất nhiều hàm => đã biết
+minimist: lấy arguments truyền vào lúc chạy ct trên terminal
+reselect: tạo selector cho state của redux. redux toolkit có sẵn hết r nên k cần, nếu dùng redux bth mới cần. Cú pháp đơn giản nếu cần học được
+
+normalize.css: 
+Khi thao tác với các thẻ thì 1 số thuộc tính css nó được thiết lập sẵn bởi trình duyệt làm cho hiển thị ra k như mong muốn. CSS Reset ra đời để xóa hết các thuộc tính mặc định đó. Tool này có thể đưa tất cả về 0 hết như padding hay gì cx k còn. Khi dùng các framework như bootstrap, materialUI thì việc này cx là k cần thiết vì theo framework sẵn hết r.
+normalize.css là 1 tool CSS Reset nhưng nó k hoàn toàn cho tất cả thẻ về mặc định mà nó fix vài lỗi cũng như giữ lại 1 vài tiêu chuẩn cần thiết để k làm cho thẻ khó hoạt động vì kp thẻ lại reset lại về mo cũng là tốt. Nhớ nguyên tắc dùng là phải include nó đầu tiên trong tất cả.
+sanitize.css: là phiên bản khác của normalize.css nhưng có lẽ là tốt hơn
+CDN: <link href="https://unpkg.com/sanitize.css" rel="stylesheet"/>
+React: npm install sanitize.css
+CSS: @import url(sanitize.css);
+Webpack: @import url(~sanitize.css);
+JS: copy về rồi import 'sanitize.css';
+animate.css: hỗ trợ các css về animation với các class có sẵn. Có vô số animation: https://www.npmjs.com/package/animate.css/v/3.4.0
+Các thư viện CSS đều hỗ trợ đa trình duyệt. Có nhiều package hỗ trợ css và cũng có nhiều trang web cho ta thao tác với css và tự sinh code cho project
+styled-components: tổ chức quản lý các components được styled. Khi dùng materialUI thì điều này là k cần thiết vì ta có thể custom được các components tái sử dụng thỏa thích r
+
+moment: thư viện thao tác với datetime rất mạnh: https://viblo.asia/p/gioi-thieu-ve-momentjs-63vKjnwAK2R#_millisecond-10
+
+devDependencies có:
+escape-html: code thg convert sang chuẩn html sẽ thế nào
+lucene-query-parser: công cụ parse văn bản chỉ cần có vài dấu hiệu => đã biết
+compare-versions: thao tác với version dạng string => đã biết
+circular-dependency-plugin: 1 package giúp tìm lỗi circular dependency
+
+file-loader: công cụ xử lý import/require cho webpack. VD ta có thể import 1 bức ảnh trực tiếp trong dự án chỉ cần thêm vài config vào webpack khi có module này
+html-loader: export html dưới dạng string, html sẽ được tối giản hóa bởi compiler, ta có thể import html file và chỉnh config của webpack. Chỉ dùng cho webpack.
+imports-loader: module for webpack. Sử dụng module dựa trên biến global cụ thể nào đó. VD sử dụng jQuery trực tiếp trong dự án or các module khác, tất nhiên phải config lại webpack
+url-loader: loader cho webpack chuyển đổi file sang base64 URIs. Nó giống file-loader nhưng có thể return dataURL nếu file đủ nhỏ.
+svg-url-loader: webpack loader load cái SVG như UTF-8 encoded data url string. Cái url-loader có sẵn luôn chuyển thành base64 với SVG thì k cần thiết. 
+terser-webpack-plugin: plugin của webpack minimize JS code.
+
+jest: unit test, react thg dùng nó test logic kiểu fetch API liệu có đúng k. Ta k chơi test kiểu này
+jest-styled-components: phục vụ jest testing
+
+ngrok: Ứng dụng này giúp đưa ứng dụng ra internet thông qua đường hầm để người khác truy cập vào. Tunnel: Máy ta -> xuyên qua Firewall/Nat -> url ngoài <- máy khách. Dùng với cả react và server nodejs
+Bản ứng dụng chỉ tạo được đường hầm: tải ngrok -> vào ngrok.exe -> paste authentoken 1 lần -> chạy ngrok http <port> -> truy cập được
+Bản package npm: npm i ngrok -g -> code chạy trực tiếp connect ngrok, k cần dùng command nx. Phải có authtoken từ ngrok.
+
+localtunnel: Tương tự ngrok
+Dùng command: install package localtunnel -> lt --port <port> --subdomain nguyenthuhieu để chạy được luôn
+Dùng code: phải install k có tham số -g => code thôi là tự có tunnel 
+
+node-plop: code generator for backend
+plop: code generator for frontend
+Công cụ tạo ra đoạn code lặp lại dựa trên 1 template có sẵn có nhiều loại template. K qtr
+
+pre-commit: check coding style, tạo ra linter tùy ý để check trước khi commit code. Package này chả còn quan trọng khi tích hợp sẵn khi dùng husky rồi
+
+npm i rimraf -> tạo command: "build:clean": "rimraf ./build", là xong
+shelljs: dùng thư viện với NodeJS mô phỏng tương tự Bash script
+styleint: check tiêu chuẩn css, có rất nhiều rules build sẵn và plugin. Để kết hợp các chuẩn có sẵn cần thêm stylelint-config-standard or stylelint-config-recommended vào file config
+tslint: tương tự eslint nhưng chuyên dùng cho dự án typescript
+
+gulp: Nó giống như 1 build tool mới tương tự webpack v. Nó có thể tạo ra 1 webserver, chuyển đổi typescript thành JS, SASS thành CSS, refesh trình duyệt khi save file, tối ưu hóa tài nguyên cho phiên bản production, nối 1 chuỗi task vào nhau làm tự động hóa. Nó có nhiều package con đi kèm làm từng task.
+
+whatwg-fetch: fetch trực tiếp file
+
+react-error-overlay: thao tác với cái error overlay của browser là cái màn hình đỏ đen báo lỗi ấy. VD ta có thể disable nó đi => lỗi hết r, bỏ
+
+
+
+-> Các package dùng chuyên cho NodeJS:
+bcryptjs: hỗ trợ mã hóa hash text có
+compareSync / compare
+genSalt / genSaltSync
+hash / hashSync
+
+cloudinary: thư viện quản lý hình ảnh. Nó giống các cloud khác như Google Cloud hay S3 ấy. Nó free và nó có 1 package npm riêng để thao tác. Cần tạo 1 tk và dùng .env lưu cloud name, API key, API secret
+multer-storage-cloudinary: multer được dùng để uploadfile mà ta cho người dùng upload ảnh được thì dùng kết hợp: multer, cloudinary với multer-storage-cloudinary
+
+express-generator: setup dự án express nhanh chính chủ của express
+cài global r cứ chạy lệnh: express [--option] <tên thư mục> là có ngay dự án express, ví dụ viewengine dùng ejs thì thêm option --ejs => search trong docs. Nó cài thêm vài package như:
+http-errors: dùng như 1 middleware thông báo error cho user
+var createError = require('http-errors');
+app.use(function (req, res, next) { next(createError(404)); })
+=> cho cái này vào cuối sau tất cả các url để đảm bảo nếu k chạy vào các url đó thì forward lỗi 404 not found cho error handler 4 tham số xử lý. express-generator xử lý hết cmnr
+debug: package dùng hiển thị log và lỗi đẹp hơn trên browser và console, cũng có thể dùng commandline với nó => k qtr
+
+connect-timeout: kiểm soát lỗi timeout khi 1 request từ client đến quá lâu thì trả lại lỗi cho client
+mongoose-sequence: plugin hỗ trợ autoincrement 1 trường nào đó khi tương tác với mongoose
+
+Backend dự án backend:
+express-rate-limit => giới hạn request cho 1 IP
+joi => check type json đúng kiểu
+validator => string validator
+http-status => mã code enum
+jsonwebtoken => sign + verify. Đăng nhập là lấy token, mọi thao tác đều verify có token
+
+passport -> giúp ta authenticate request theo hàng loạt các plugin là strategies
+passport-jwt -> 1 strategy của passport thay thế jsonwebtoken verify
+passport-local -> 1 strategy dùng cho xác thực username, password
+express-mongo-sanitize => prevent MongoDB Operator Injection
+css-clean => làm đẹp code css
+swagger-jsdoc => hỗ trợ swagger
+swagger-ui-express => hỗ trợ swagger
+=> swagger là tool viết API, viết bằng code và lấy ra giá trị API thì 2 package này hỗ trợ tạo code đó => k dùng
+winston => a logger log everything
+faker => fake data => npm i faker@^5.1.0 --save-dev
+node-mocks-http => fake http request và response, thg dùng trong test
+supertest => testing http. Hoạt động với mọi test framework or test 1 mình k cùng framework nào cũng đươc
+coveralls, travis CI, github CI/CD: test, deploy trực tiếp chưa có tg
+

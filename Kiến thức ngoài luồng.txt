@@ -1,0 +1,34 @@
+-> NodeJS
+Xd trên nền tảng Javascript V8 Engine, mã nguồn mở. Xử lý realtime, ví dụ facebook bình luận phát nhận đc luôn k cần load lại trang. Javascript engine là trình thông dịch mã js. Ngoài V8 thì cũng có các js engine khác như: SpiderMonkey(FireFox), Hermes(ReactNative), Chakra(IE), JavascriptCore(Safari),.. Engine gồm heap và stack. 
+Stack lưu các lệnh theo kiểu stack đã biết. Stacktrade là đường đi của các câu lệnh chứa trong stack. Còn heap là vùng nhớ chứa kết quả tạm thực thi trong các hàm stack. Có càng nhiều thì chạy càng nhanh. Tức là js engine lưu kết quả thực thi vào heap, khác với C++ lưu con trỏ lưu vào heap.
+Đặc điểm: không đồng bộ, chạy nhanh, đơn luồng 1 phát từ trên xuống, k đệm, đc cấp giấy phép MIT, hướng sự kiện
+
+2 framework nổi tiếng của phổ biến của NodeJS: ExpressJS, SocketIO
+
+
+-> Cài NodeJS sẽ dùng được bộ thư viện npm rất lớn.
+Ta cài NodeJS có trong VSC r, nếu k phải tải chay trên mạng về được 1 cái command prompt -> dùng nó để cài đặt các dự án, có thể dùng luôn terminal VSC
+
+node -v để xem phiên bản
+npm -v
+
+npm init -y => tạo file package.json(file cấu hình của nodejs) => đây là lệnh để tạo 1 dự án nodejs basic nhất. 
+
+Chạy file node js bằng lệnh: node <tên file>.js
+
+
+-> Trong đó, main là file chạy chính(chạy đầu tiên) của Project(trong NodeJS có, React k có); script: là danh sách các cấu hình bổ sung cho npm, chạy nó đc với npm run "<tên>", mặc định có test là câu thông báo dừng Ct khi bị lỗi, khi cài các package vào có thể tự sinh ra các lệnh script trong đây để thao tác command với package đó; license mặc định là ISC
+ISC license is a permissive free software license published by the Internet Software Consortium, now called Internet Systems Consortium (ISC). Nó khá giống với MIT License is a permissive free software license originating at the Massachusetts Institute of Technology (MIT) in the late 1980s
+license có thể dùng là MIT, ISC, GPL-3.0
+
+Cú pháp install chuẩn phiên bản: npm install package-name@version --save
+Cài xong trong package.json xh dependencies là danh sách các dependencies cài vào
+
+
+-> Các lệnh cmd window basic:
+dir; mkdir <tên folder>; rmdir(rd) <tên dir>; echo <content>; rename <old> <name>; type content/null > <tên file>; del <tên file>
+
+
+-> Với mô hình LAMP khi có 1 webserver là apache nằm dưới cùng PHP chạy trên nó. Mỗi kết nối tới server sẽ sinh 1 thread mới làm ứng dụng chậm và quá tải thì cách duy nhất để cải thiện là cài thêm nhiều máy chủ. Nhưng với NodeJS thì điều này ok. K có máy chủ apache lắng nghe kết nối và trả về mã http mà chính ta phải tự quản lý kiến trúc lõi máy chủ đó, đem đến tốc độ thực thi cao. JS là ngôn ngữ hướng sự kiện nên mọi thứ người làm đều là sự kiện non-blocking nên chẳng bh bị khóa và luôn sẵn sàng cân hàng chục nghìn user 1 lúc.
+NodeJS triển khai trên host k đơn giản. Tốt hơn nên dùng với VPS, Heroku,..
+

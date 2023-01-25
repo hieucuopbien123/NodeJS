@@ -1,0 +1,67 @@
+Bảo mật server nodejs
+
+
+
+# 1 số phương pháp bảo mật thông dụng
+-> Mã hóa dữ liệu truyền giữa máy khách và máy chủ với TLS, SSL: giúp chặn các cuộc tấn công kiểu MITM(man in the middle). MITM có thể thực hiện bằng nhiều cách qua Wifi, email, DNS, Port, STP,... 
+
+Khi dùng express ta có thể dùng SSL cho trang web. Nếu self sign thì ok nhưng browser vẫn báo k an toàn vì đấy là ta sign là ta chấp nhận tức ta tự chứng thực rằng trang web này đúng là do ta làm. Phải có SSL của CA thì mới chứng thực được rằng ta kp là lừa đảo. 
+Có thể dùng Let's script để có SSL free trong vài tháng.
+=> Sinh key và cert có hạn 365 ngày với: openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365
+
+--> Để tải openssl: tải và vào env var -> vào phần Path ở bên dưới thêm vào đường dẫn đến thư mục bin
+
+-> Bảo mật truyền tải nghiêm ngặt HTTP (HTTP Strict Transport Security - HSTS): 
+Nếu được đặt trong response header thì trình duyệt sẽ hiểu là nó chỉ nên giao tiếp bằng HTTPS thay vì HTTP với domain được chỉ định. VD ta thêm vào nodejs trước khi gửi đi:
+res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains'); Đối với giá trị này ta cần set lớn hơn thời hạn 1 năm (31,536,000 giây). Khi đã set thì phía server không thể xóa được thông tin setting đã được lưu 1 lần trên trình duyệt nên cần check kỹ rằng server k cần HTTP response mới dùng. 
+
+Còn có preload là option các phần setting được ghi trên trình duyệt ngay trong lần đầu tiên cũng k sử dụng HTTP. Khi ta dùng option preload thì domain được đưa vào preload list. Danh sách preload này là các website được hardcoded vào trình duyệt Google Chrome chỉ giao tiếp được qua HTTPS. Chủ sở hữu trang web có thể gửi url của chúng để được đưa vào danh sách preload. List này được duy trì bởi google nhưng các trình duyệt khác cũng sử dụng được nó.
+
+VD: nếu k kích hoạt HSTS thì nạn nhân kết nối wifi mở sẽ nằm trong sự kiểm soát của kẻ tấn công(giả sử dính man in the middle attack qua wifi). Nạn nhân vào 1 website qua HTTP sẽ cho phép attacker chặn request và đọc thông tin gửi lên server. 
+=> Khi browser tương tác với server của ta gặp cái option bên trên này (tính cả subdomain) thì nó setup rằng trong vòng 31536000s tiếp theo nó chỉ được phép giao tiếp với domain server của ta bằng HTTPS. Ai làm giả domain or MITM sẽ bị chặn.
+
+=> Chú ý cái này chỉ là ép browser chỉ được tương tác với server của ta bằng HTTPS tức thông tin giữa 2 cái cần được mã hóa, chứ làm sao để có mã hóa thì ta phải hosting website https và dùng mã hóa SSL cho server
+Cũng có thể xử lý khi request người dùng là http thì tự redirect tới https. Chỉ cần biết A gửi B mà dùng http thì MITM có thể bắt được nhưng A gửi B bằng giao thức https thì MITM k đọc được
+
+-> X-Frame-Options là header cho biết liệu 1 trang web khác có được nhúng trang web của ta để hiển thị trong <frame> <iframe> <object> hay không. Chặn cái này để tránh tấn công kiểu nhấp chuột clickjacking. Kiểu này là lừa người dùng nhấp vào thứ gì đó k có ở website, khi người dùng đang ở web chính thức nhưng có 1 hành động đang chạy trong nền thì rất có thể trong quá trình đó, thông tin người dùng đang bị đánh cắp
+VD: res.setHeader("X-Frame-Options", "DENY");
+res.setHeader("X-Frame-Options", "SAMEORIGIN");
+res.setHeader("X-Frame-Options", "ALLOW-FROM https://example.com/");
+VD: lừa người dùng truy cập 1 website độc hại và 1 iframe vô hình được cài sẵn. Người dùng click vào iframe là thông tin bị đánh cắp gửi đến server khác.
+
+-> X-XSS-Protection: "1; mode=block" => cách dùng tương tự. Cái header này kích hoạt bộ lọc XSS tích hợp trong các trình duyệt hiện đại. Nó có 4 chế độ là 0(bộ lọc XSS vô hiệu hóa), 1(kích hoạt và bảo vệ trang nếu phát hiện tấn công), 1;modeblock(kích hoạt và ngăn chặn hiển thị trang nếu phát hiện tấn công), 1;report="https://<url>" (kích hoạt và báo cáo vi phạm vào url nào khi phát hiện tấn công) => có thể kết hợp 1;mode-block;report="<url>"
+
+-> X-Content-Type-Options: nosniff => là header ngăn chặn rủi ro bảo mật loại MIME. Nó hướng dẫn trình duyệt đọc các loại MIME chỉ định trong tiêu đề và nếu header này trống thì trình duyệt sẽ tự hiển thị theo cách phù hợp nhất. Kiểu lấy data từ server về và check đúng type file mới cho dùng ấy
+Đầu tiên trình duyệt request 1 tập tin và server sẽ response 1 tệp với X-Content-Type header. Trình duyệt phân tích tệp này để lấy định dạng các file. Sau khi phân tích, trình duyệt sẽ so sánh kết quả được gửi bởi máy chủ và nếu k phù hợp, trình duyệt sẽ chỉ dùng định dạng đã xác định. VD: website cho phép người dùng tải lên 1 hình ảnh và xác nhận phân mở rộng là jpg và png nhưng tệp này lại chứa mã html độc hại. Nếu k đi kèm type thì như đã nói, trình duyệt tự động xác định type là html và thực thi là toang, nhưng khi check trường X-Content-Type của header và thấy khác với type của data nhận về thì nó chỉ thực hiện các type đã xđ chuẩn mà thôi. Ta set nosniff là thiết lập k kiểm tra
+
+-> Content-Security-Policy ngăn chặn 1 loạt các cuộc tấn công bao gồm XSS, click jacking. package helmet của nodejs tự động xử lý 1 loạt các header bao gồm cái này. Nó cho quản trị viên kiểm soát website bằng cách hạn chế tài nguyên người dùng được phép tải trong web. Hầu hết các trình duyệt đều hỗ trợ CSP và có thể nó sẽ thay thế X-Frame-Options, X-XSS-Protection, là 2 cấu hình không được bật theo mặc định. Có 2 tham số dùng nhiều nhất là "default-src" tải mọi thứ từ 1 nguồn xác định và "script-src" chỉ tải các tập lệnh từ nguồn xác định. 
+VD1: Content-Security-Policy: script-src 'self' https://viblo.asia
+VD2: const express = require('express');
+const helmet = require('helmet');
+const app = express();
+app.use(helmet())
+=> Ta cũng có thể set header riêng lẻ với:
+app.use(helmet({
+  frameguard: {
+    action: 'deny'
+  }
+}));
+1 số webserver thì bảo mật có thể set trong chính tệp config server VD ta set trong server nginx.conf:
+add_header X-Frame-Options DENY;
+add_header X-Content-Type-Options nosniff;
+add_header X-XSS-Protection 1;
+add_header Content-Security-Policy "default-src 'self'";
+
+-> CSRF (Cross site request forgery) hay XSRF - Sea Surf - Session Riding là 1 vector đánh lừa trình duyệt thực hiện hành động không mong muốn trong ứng dụng người dùng đã đăng nhập, có thể buộc nạn nhân đổi mail, mật khẩu, chuyển tiền. Ngăn chặn với crurf. 
+VD: A vào diễn đàn của mình như thường lệ nhưng hôm đó B là 1 người muốn phá hủy 1 dự án mà A đang làm. B đăng tải 1 bài lên diễn đàn nhưng trong đó kèm theo 1 đoạn code kiểu: 
+<img height="0" width="0" src="http://www.webapp.com/project/1/destroy">
+=> Giả sử dự án của A đang làm ở website http://www.webapp.com vừa đăng nhập và chưa đăng xuất. Tức là chỉ bằng việc xem bài viết của B, browser của A đã cố gắng load ảnh nhưng thực tế lại gửi câu lệnh destroy vào địa chỉ này để xóa project có id là 1. 
+Có nhiều biến thể khi mà dùng các thẻ có độ tinh vi cao hơn. VD hacker dùng 1 url rất mượt mà kiếu: <img height="0" width="0" src="http://www.ahackersite.com/abc.jpg"/> => xong cấu hình lại máy chủ: Redirect 302/abc.jpg http://www.webapp.com/project/1/destroy"/> thì người dùng k thể phát hiện ra được. Vấn đề này là phía người làm web cần phải xử lý
+
+-> Các kiểu khác
+--> XSS ngăn chặn bằng thư viện validator check mail, xss-filter or DOMPurify
+--> Referrer-Poligy: "same-origin" sẽ kiểm soát có gửi kèm referer information không. Nếu chưa quyết định sẽ thiết lập là "same-origin"
+--> X-Permitted-Cross-Domain-Policies: none => thì các header liên quan tới Adobe Acrobat/FlashPlayer dùng cho cross domain request sẽ bị cấm. Trên các site k xử lý các file này, server sẽ đề xuất là: k cho phép toàn bộ các file policy. Tức là cấm cấm PDF và Flash document for cross-domain request.
+--> X-Download-Options: noopen => thiết lập này đi kèm với Content-Disposition: attachment khi người dùng download file về sẽ thiết lập là k mở file luôn.
+
+

@@ -1,0 +1,14 @@
+//- Nếu dùng extends thì nó phải ở đầu file
+extends layout.pug
+block header 
+    h1 Header
+block body
+    h1 body 
+block append footer 
+    p Them gia tri vao block footer 
+//- Kế thừa bằng việc mở rộng từ block
+
+//- File A ta khai báo ra các block, file extends file A sẽ có cấu trúc như file A. File B ta khai báo lại các block
+//- như trên đề thay vào các block của file A, nó chỉ thay vào chứ chả làm gì khác. Từ khóa append sẽ ghi đè
+//- lên các phần bên dưới của block nếu bị trùng tag, id, class. Ở trên p sẽ thay thế cho thẻ p ở file layout.pug
+//- nếu file đó cũng có block footer và ngay bên dưới là thẻ p nào đó

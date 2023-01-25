@@ -1,0 +1,309 @@
+NodeJS(code JS):
+JSON.parse(<Json string>, <function(key, value)>); JSON.stringify(<object>, null/<function(key,value)>, <number>);
+__dirname; __filename; global;
+Buffer.from("<data>", <kiểu encode muốn lưu>); Buffer.from(<buffer>, <start>, <length>); 
+const buffer = Buffer.alloc(<size>, "<default>", "<kiểu encode>"); 
+buffer.toString("<kiểu encode>", <start>, <end>); buffer.toJSON();
+Buffer.concat([,]);
+buffer.write("<data>", <offset>, <length>, "<kiểu encode>");
+buffer.compare(<>); buffer.length; buffer.copy(<>); buffer.equals(<>); buffer.fill(<>); buffer.indexOf(<>); 
+Buffer.isBuffer(); Buffer.isEncoding();
+const arr = new Uint16Array/Float32Array(); arr.buffer;
+var id = setImmediate(<function>); clearImmediate(id);
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
+module = { exports: {} }; var exports = module.exports;
+module.exports = <data>/{<object các data cần export>}
+
+
+node-persist:
+var storage = require("node-persist");
+storage.init({ dir: "", ttl: true/false}).then(<function>);
+storage.setItem(<>,<>); storage.getItem(<>,<>); storage.removeItem(<>);
+storage.clear();
+
+
+yargs:
+var yargs = require('yargs').demand("<action>");
+yargs.argv._; yargs.help().argv;
+
+var yargs1 = require('yargs).command('<action>','<description>', 
+	yargs => { <key>: { required/require/demand: true, type: 'number/string/array', alias: <>, default: <> }});
+
+
+crypto-js:
+var crypto = require("crypto-js");
+var message = crypto.AES.encrypt("<message>", "<passphrase>");
+message.toString();
+crypto.AES.decrypt(message, "<passphrase>").toString(crypto.enc.Utf8);
+
+
+fs:
+const fs = require('fs');
+fs.readFileSync("<link to file>", { encoding: "<utf8>", flag: 'r' }).toString(); 
+fs.readFile("<link to file>", "<utf-8>", <function(err, data)>); 
+fs.writeFileSync("<>", "<>"); 
+fs.writeFile("<link ot file>","<data>", { mode: 0o666, flag: "w", encoding: "utf-8" }, <function(err)>);
+fs.mkdirSync("<path>");
+fs.existsSync("<path>");
+fs.close(<>, <>); fs.closeSync(<>);
+fs.rename(<>, <>, <function(err)>); fs.unlink(<link>,<callback>);
+
+const readerStream = fs.createReadStream("<>");
+readerStream.setEncoding("UTF-8");
+readerStream.on('data', <function(chunk)>);
+readerStream.on('error', <function(error){ error.stack }>);
+readerStream.on('end/finish', <function()>);
+const writerStream = fs.createWriteStream("<>");
+writerStream.write(<>); writerStream.end();
+writerStream.on("finish/error", <function>);
+<stream>.pipe(<stream>);
+
+import { open } from 'fs/promises';
+const filehandle = open("<>","<r/w>");
+filehandle.readFile().then(<>);
+filehandle.writeFile(<>).then(<>);
+
+
+zlib:
+const zlib = require('zlib');
+const gzip = zlib.createGzip();
+<readStream>.pipe(gzip).pipe(<writeStream có đuôi file là .txt.zip>)
+
+
+events:
+const events = require('events');
+const emitter = new events.EventEmitter();
+emitter.emit("<>");
+emitter.on("<>", <function>); emitter.addListener("<>", <functionn>);
+events.once(<emitter>, "<eventName>");
+emitter.setMaxListener(<int>); emitter.getMaxListeners();
+emitter.removeAllListeners(); emitter.removeListeners("<>", <function>);
+emitter.listeners("<>");
+
+
+cors:
+var cors = require('cors');
+cors() => là 1 middleware
+cors({ origin: <function(origin, callback)>, optionsSuccessStatus: 200 })
+
+
+http:
+const http = require("http");
+http.createServer(<function(req, res){ 
+	req, res => là 1 stream
+	res.setHeader('Context-type', 'text/plain');
+	res.writeHead(200, {'Content-Type': 'text/html'});
+	res.write(<html code>);
+	req.url  req.method  req.params.<param>  req.url  req.query.<query key>  req.protocol  req.hostname  req.path  req.originalUrl  req.subdomains  req.header('<tên header>')  req.cookies
+	req.on("data/end", <function>)
+	res.end(); 
+}>).listen(<port>, <function>);
+
+
+dotenv:
+require('dotenv').config();
+process.env.<trường của file .env>
+
+file .env:
+<key>=<value>
+
+
+request-promise and cheerio:
+var rp = require("request-promise");
+var cheerio = require("cheerio");
+(async function <tên function(){
+	var $ = await rp({ 
+		url: "<link tới web>", 
+		transform: function(body){
+			return cheerio.load(body);
+		} 
+	})
+	var <contentVar object/array> = $("<CSS Selector>");
+	$(<contentVar array>[]).text();
+	$(<contentVar array>[]).find("<>").find("<>").each(function(i, ele){
+		$(ele).attr("<tên attribute>");
+	);
+	$("<CSS Selector>").first().text(function(index){ })
+	$("<CSS Selector>").last().html(function(index){ })
+})();
+rp({ method: '<POST>', uri: "<link>", form: { <key>: <value>}, headers: { 'content-type': 'application/<>' }).then(function(body){ }).catch(function(err){ })
+rp("<link>").then(function(htmlString){ }).catch(function(err){ })
+rp('<link>', (error, response, html) => {
+	response.statusCode;
+	const $ = cheerio.load(html);
+})
+
+
+formiable:
+const formidable = require('formidable'); 
+const form = new formidable.IncomingForm({ encoding: "UTF-8" });
+form.on('field/file', <function(field, data) { data[0][1].name/.path }>)
+form.parse(<req>, <function(error)>)
+
+
+mv:
+const mv = require('mv');
+mv(<>,<>,<function(err)>)
+
+
+path:
+const path = require('path');
+path.basename("<link>", "<extension>"); path.dirname("<>"); path.extname('<>');
+path.delimiter; path.sep;
+path.format({ dir: "<link dir>", base: "<file>", name: "<file name>", ext: ".txt", root: "<link root>" });
+path.parse("<>");
+path.isAbsolute("<>");
+path.join("<>", "<>",); path.normalize("<>");
+path.resolve('<>', '<>', );
+
+
+url:
+const url = require('url');
+var varURL = new url.URL('<url>', '<base>');
+varURL.origin; varURL.username; varURL.host; varURL.post; varURL.hostname; varURL.hash; varURL.search; varURL.searchParams.get('<param>'); varURL.pathname; varURL.password; varURL.href;
+varURL.toJSON();
+
+
+express:
+var express = require('express');
+var app = express();
+app.use(<express.json()/ express.static("<link folder>")/ mọi middleware>);
+app.get(<pattern/regexp>, <middleware>, <function(req, res, next){ res.json({object}) }>);
+app.use(function (req, res, next) { 
+	res.header("Access-Control-Allow-Origin", "*");
+    	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+	res.sendFile("<path tuyệt đối>");
+	res.status(<>).send("<content>");
+	req
+    	next();
+});
+
+function(res, req, next){ next(); } => là 1 middleware
+function(err, res, req, next){ err.stack; } => là 1 middleware
+var router = express.Router();
+router.use(<middleware>);
+app.use('<path>', router);
+
+express.set("<views/ loại engine>", "<folder chứa engine>");
+express.set("<view engine/ loại template engine>", "<tên template engine>");
+<res>.render("<view file to render to html to send>", <object var truyền vào file view>);
+
+pug:
+app.set("view engine", "pug");
+<!DOCTYPE html>
+<tên tag>.<tên class>#<tên id>(<tên attribute> = <value attribute>, <attribute> = <val of var truyền ở đây>) <text node> #{ <val of var truyền cho text node> }
+mixin <tên mixin>(<param>)
+	-var <tên var> = "<>"+param
+	<tên tag> = param
+if (<var truyền vào>)
+	<code pug>
+else
+	<code pug>
++<tên mixin>(param)
+block <tên block>
+extends <file .pug>
+block append <tên block>
+|
+|
+case <var>
+	when <value>
+		<code pug>
+	when <value>: <code pug one line>
+	default
+		- break
+//-
+
+app.use(express.urlencoded({ extended: true }));
+const { body } = <req>;
+
+multer:
+const multer = require("multer");
+multer({ 
+	storage: multer.diskStorage({ 
+		destination: (req, file, cb) => cb(null, <link>),
+		filename: (req, file, cb) => cb(null, <link> + file.originalname/ mimeType/ path/ size)
+	});
+}).single("<field name>");  => là 1 middleware => req.file;
+/array("<field name>") => là 1 middleware => req.files;
+
+cookie-parser: 
+cookieParser(<array or object to sign>); => là 1 middleware
+<res>.cookie("<key>", "<value>", { expires: <date>, domain: "<.example.com>", signed: true/false, path: "</admin>", secure: true/fase, httpOnly: true, maxAge: <number> });
+<req>.cookies.<key>;
+<res>.clearCookie('<key>');
+
+express-formidable:
+const formidableMiddleware = require("express-formidable");
+formidableMiddleware({ multiples: true/false }) => là 1 middleware
+=> req.files.fileSend.length/size/map(<function(file){ file.name  file.path }>)
+=> req.fields.to/subject/text
+
+
+nodemailer:
+const nodemailer = require("nodemailer");
+const transporter = nodemailer.createTransport({ service: "gmail", auth: { user: <>, pass: <> } });
+transporter.sendMail({ from, to, subject, text, attachments }, <function(error, info){ info.response }>)
+transporter.close();
+
+
+socketio:
+var app = require('express')();
+var http = require('http').createServer(app);
+var io = require('socket.io')(http);
+io.on('connection', <function(socket){ 
+	socket.emit('<event>', <data>);
+	io.emit('<event>', <data>);
+}>)
+io.broadcast.on('disconnect',<function(){ }>)
+var namespace = io.of("<tên namespace>");
+namespace.on('<event>', function(socket){
+	socket.join('<tên phòng>');
+	socket.emit('join room/ leave room/ tên event', <data>);
+	namespace.to(<tên phòng>).emit('<event>', <data>);
+})
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+	var socket = io("<tên namespace>", { reconnectionDelayMax: 10000 });
+	socket.emit('<event>', <data>);
+	socket.on('<event>', <function(<data>){ }>)
+	socket.on('connect/ connecting/ disconnect/ connect_failed/ error/ message/ reconnect/ reconnecting/ reconnection_failed', <function(){ }>)
+<script/>
+
+
+jest:
+describe("<test name>",() => { <test> });
+test("<test name>", <mọi loại function() {
+	expect.assertions(<number>);
+	expect(<var>).toBe(<data>)/ toBeNull()/ toBeDefined()/ toBeUndefined(); 
+	expect(<string>).toMatch("<regexp>");
+	expect(<num>).not.toEqual(<num>)/ toBeGreaterThan(<>)/ toBeLessThanOrEqual(<>)/ toBeCloseTo(<>);
+	expected(<bool>).toBeTruthy()/ toBeFalsy();
+	expected(<iterable var>).toContain(<>);
+	expected(<function>).toThrow(<error/>);
+}>)
+test.only("test name", <function>);
+beforeAll/afterAll/beforeEach/afterEach(<function>);
+
+jest.mock("<link file 1));
+const fileVar = require("<link file 1>");
+fileVar.<hàm>.mockReturnValue(<data>); fileVar.<hàm> = jest.fn().mockReturnValue(<>);
+jest.fn().mockReturnValueOnce(<>).mockReturnValueOnce();
+var spyVar = jest.spyOn(fileVar, <tên function>);
+spyVar.mockImplementation(<function>);
+spyVar.mockRestore(); spyVar.Reset(); spyVar.mockClear();
+
+jest.mock("<tên module>",() => ({ <tên hàm async>: jest.fn().mockResolvedValue/ mockRejectedValue/ mockResolvedValueOnce/ mockRejectedValueOnce(<data>) }))
+
+const mockFunc = jest.fn(<function>)/ jest.fn().mockImplementation(<function>);
+mockFunc.mock.calls.length mockFunc.mock.calls[<>][<>] mockFunc.mock.results[<>].value
+
+
+
+axios:
+const axios = require('axios');
+axios.post("<url>", { <object> });
+axios.get("<url>");
+axios.delete("<url>" { <object> });
+
+

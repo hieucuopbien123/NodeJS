@@ -1,0 +1,51 @@
+//- pug hỗ trợ html cho nodejs vì html k có biến với câu diều kiện,..
+html  
+    head
+        title Using Pug 
+    body
+        header
+            h1 This is content of h1
+        section
+            p This is content of p 
+
+            h1.welcome
+            p#content
+            span.note#note_1
+
+            //- tức là <span class="note" id="note_1"></span> đó
+            a(href='freetuts.net') Freetuts     
+            |
+            |
+            a(class='button' href='freetuts.net' style="color: red; background: yellow") Freetuts
+            //- éo có dấu phẩy cũng đc. Các thanh | khi xuống cùng hàng tượng trưng cho dấu cách giữa các thẻ inline
+            |
+            |
+            a(class='button', href='freetuts.net', class="btn", style={color: 'red', background: 'green'}) Freetuts
+            //- đây là cách tạo khoảng space, style có thể là string or object
+
+            //- khởi tạo biến và sử dụng bằng cách <tên thẻ>=<biến>
+            - var freetuts = 'Learn Nodejs'
+            h1=freetuts
+            
+            - var isLogin = true
+            if isLogin 
+                h1(style={color: 'green'}) Welcome to Freetuts
+            else
+                h1(style={color: 'red'}) Login please !!!
+
+            - var friends = 0
+            case friends
+                when 0
+                    p you have no friends
+                when 1
+                    p you have a friend
+                when 2
+                    - break//- k có break sẽ tự động tràn xuống dưới và chỉ tràn khi trong 1 when k có gì cả
+                when 3: p you have no friends
+                default
+                    p you have #{friends} friends
+            //- Cách lấy giá trị biến trong text
+            //- Chú ý là pug nó tính cả việc lùi đầu dòng, lùi k chuẩn là ăn cứt ngay
+            //- Dùng block với dấu : để viết trên cùng 1 dòng
+        footer
+            This is content of footer

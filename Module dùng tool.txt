@@ -1,0 +1,73 @@
+Dùng tool
+
+-> Trong các dự án thì test là việc bắt buộc. Nhưng nó gặp vấn đề là bài test có thể bị duplicate, chậm, phụ thuộc. VD ta test 1 system ở front-end nhưng khi test hệ thống dữ liệu đi qua back-end bị sai, ta k biết điều đó lại cứ tưởng phần front-end ta làm bị sai. Mock test là cách test giả định dữ liệu thực tế, tức là thay vì bị lệ thuộc vào server như v, ta sẽ tạo hẳn 1 server giả định(mock) giống server thật và dùng nó như 1 cái input mặc định là backend luôn đúng để cô lập phần code của ta là front-end code đúng hay sai. Thậm chí cách test cũ còn bị chậm vì phải đợi dữ liệu từ backend trả về.
+Phân biệt mock data và mock test, mock data là cung cho ta các loại data khác nhau tùy ý để test là data đầu vào cho code của ta xử lý data đó đúng k. JS và trên mạng có rất nhiều nơi giúp tạo mock test và lấy mock data.
+
+
+
+# Dùng Jest: để tạo test với npm install jest => thg được front end sử dung. Được phát triển bởi facebook
+Thêm file package.json lệnh để chạy:
+"scripts": {
+    "test": "jest"
+}, 
+=> chạy bằng npm run test or yarn test
+Nó sẽ tìm file test nằm trong thư mục __test__ or file có đuôi là .test.js
+Nếu nhiều test case/test suite mà muốn chạy các test case có tên là or các test suite có tên là or 1 test case trong 1 test suite có tên là thì:
+yarn test <tên suite.test.js> 'tên case'
+
+
+
+# Dùng MounteBank: là thư viện cung cấp cho ta 1 server ảo(dạng ngân hàng). Nó cung 2 thao tác là tạo mới và delete, get,.. k có edit => bỏ, thà sử dụng json server còn tốt hơn
+npm install -g mountebank
+Chạy server với: mb start --port 2525 (có nhiều options khác)
+Còn có: mb stop/save/restart/replay
+
+
+
+# Autocannon
+Có nhiều tool khác chuyên test như apache benchmark, npm package loadtest or autocannon. autocannon viết bằng JS nên test hay hơn:
+npm i -g autocannon
+autocannon -v
+autocannon -c <> -p <> -d <> <url>
+với -c là số lượng connection đồng thời, mặc định là 10 user cùng lúc
+-p là đóng gói, bnh gói requests thì mặc định là 1
+-d là số giây nó phản hồi lại, mặc định là 10
+VD: autocannon http://localhost:5000/ thì sẽ check 1 gói 10 user chạy cùng lúc trong 10 giây thì mỗi giây có bnh request xử lý được thành công
+=> chạy nhiều lần lấy tb để thấy kq chuẩn
+
+Với server bth test sẽ thấy nó cho average 900 request trong 1s, tức 9k request trong 10s với máy 4 threads
+Khi xử lý mã hóa tốc độ nó giảm 10 lần
+
+
+
+# Tool pm2: chạy nhiều instance của server
+Có thể chạy 4 cluster(4 server làm 1 nhóm) sẽ tăng thêm process, cac process chạy các thứ như nhau
+npm i -g pm2
+pm2 start <file.js> -i 4
+
+Có rất nhiều lệnh hay như: pm2 monit để monitor resource và CPU; pm2 status
+
+pm2 start/stop/restart/reload app-name
+
+Có thể dùng file ecosystem.config.js để thiết lập cấu hình cho pm2
+=> refer tới "Module for project Tinkerbellgarden"
+
+
+
+# Dùng api-benchmark: thư viện đo tốc độ request trả ra đồ thị html => k dùng package bị lỗi mà tải ứng dụng về
+
+-> Tải apache như bình thường -> environment variable trỏ đến bin của Apache -> ab -h
+=> ab -n <số request> -c <số request đồng thời> <url gọi vào>
+
+
+
+# Dùng apache benchmark -> bỏ thôi, lỗi k cài được. Dùng autocannon thay thế
+npm i -g ab -> ab -n 200 -c 100 <http://localhost:5000/>
+=> để cài được thì trong máy phải có python cài bản mới nhất và dev tool của C++ có thể tải thông qua VS Installer
+
+
+
+# Dùng thunderclient 
+Là extension của VSC giúp fetch API rất tiện, thg dùng kiểu fetch tức thời luôn
+
+

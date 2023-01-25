@@ -1,0 +1,7 @@
+{
+    "database":{
+        "db": "test-db",
+        "use": "hieu",
+        "password": "123456"
+    }
+}

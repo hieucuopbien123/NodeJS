@@ -1,0 +1,26 @@
+Project Tinkerbellgarden: dựng server backend với mongodb chuẩn đầy đủ tính năng gửi mail, liên kết với mongoDB, thao tác phân quyền tài khoản với jsonwebtoken,... Y hệt NodeJS boilerplate
+=> Mọi quy chuẩn dùng trong dự án đều là chuẩn trong thực tế, các cú pháp nên tuân theo dự án này
+
+
+
+# cors
+# express
+
+
+
+# Module dùng tool / # Tool pm2
+Trước pm2 ta chỉ cài cli và gõ command, nó có package dùng trực tiếp trong câu lệnh viết package.json được
+
+Sinh file ecosystem tự động với: pm2 ecosystem
+Chạy pm2 nhưng kèm file ecosystem: pm2 start ecosystem.config.js
+Chạy lệnh deploy app với pm2: pm2 deploy production setup / pm2 deploy staging setup => ở lần đầu chạy nó sẽ pull code từ git về và setup. Ở các lần sau chỉ cần chạy: pm2 deploy production/staging update
+=> ít khi dùng pm2 để deploy. Nếu dùng, có thể kết hợp với các tool CI CD khác 
+
+Về option --no-daemon: 
+Nó là 1 loại chương trình trên các hệ điều hành like-unix hoạt động ẩn trong background. Nó đươc kích hoạt khi thỏa mãn điều kiện và tự động trả lời các request gửi tới. Thuật ngữ bắt đầu từ linux nhưng trong thực tế các hđh khác đều sử dụng tiến trình background dưới dạng này hay dạng khác. Các tiến trình daemon thg kết thúc bằng d như inetd, httpd, sshd, ipd.
+Các tiến trình daemon không thể bị gián đoạn và chỉ hoạt động khi có đầu vào, tách ra khỏi quá trình cha mẹ và thiết bị đầu cuối,.. Nếu k có đầu vào, nó cứ run ở background đó nhưng k hoạt động. 
+
+Nhiều tiến trình khi chạy phải thêm --no-daemon như câu lệnh pm2 start nên có. VD khi dùng với docker thì nên có vì nếu pm2 start index.json thì docker dừng luôn vì nó tưởng tiến trình đã kết thúc, chạy phát là dừng do nó ở trạng thái daemon và k có đầu vào nên k hoạt động.
+
+
+

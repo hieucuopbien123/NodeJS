@@ -1,0 +1,55 @@
+extend ./layouts/general
+block content
+    //- template layout giúp ta tái sử dụng code ở nhiều file vì k thể file pug nào ta cũng thêm CDN bootstrap nào mãi đc
+    .container-fluid.my-5
+        .row
+            .col-8.offset-2
+                .card
+                    .card-header.bg-primary.text-white.text-uppercase Users
+                    .card-body
+                        form.seach-form(action="/users/search")
+                            .container
+                                h2 Searching
+                                .row
+                                    .col-6
+                                        .form-group
+                                            label(for='name') Name
+                                            input#name.form-control(name="name", type='text')
+                                        //- name của input là key, giá trị user nhập là value, ta sẽ dùng nó như query 
+                                        //- params cho tính năng search còn action chỉ định đường link mà nó gửi tới 
+                                    .col-6
+                                        .form-group
+                                            label(for='age') Age
+                                            input#age.form-control(name="age", type='number')
+                                    .col-12
+                                        button.btn.btn-primary(type='submit') Search
+                            .users.my-3 
+                                h2.text-center.text-info.my-3 All users
+                                if users.length > 0
+                                    table.table.table-bordered
+                                        thead
+                                            tr.bg-info.text-white
+                                                th Avatar
+                                                th  Name
+                                                th  Email
+                                                th  Age 
+                                                th  Action 
+                                        tbody
+                                            each user in users
+                                                tr
+                                                    //- Để hiển thị giá trị của biến vòng lặp là text của 1 thẻ trong
+                                                    //- pug phải dùng dấu =
+                                                    //- Dùng users.length được vì nó là 1 mảng
+                                                    td.text-center
+                                                        img(src=user.avatar, width="50px", height="50px")
+                                                    td=  user.name 
+                                                    td=  user.email
+                                                    td=  user.age 
+                                                    td
+                                                        a.btn.btn-info(href="/users/" + user.id) View
+                                                tr
+                                        
+                                else
+                                    p No user to display
+                            a.btn.btn-primary(href="/users/create") Create new user
+                            //- Thẻ a lại chuyển trang thì browser sẽ tự gửi request get tới server là users/create
