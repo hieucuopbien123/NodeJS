@@ -23,11 +23,11 @@
         reconnectionDelayMax: 10000
     }); // io(<tên namespace>, options object)
     $('#joinRoom').click(function () {
-        socket.emit('join room', '')
-    })
+        socket.emit('join room', '');
+    });
     $('#leaveRoom').click(function () {
-        socket.emit('leave room', '')
-    })
+        socket.emit('leave room', '');
+    });
     socket.on('notification', function (data) {
         console.log(data)
         $('#notification').append(`<p>${data}</p><br>`)
@@ -37,7 +37,7 @@
     // kết nối lại liên tuc cho đến khi kết nối thành công. Ta có thể kiểm soát bằng các signal tự động.
     socket.on('connect_failed', function () {
         document.write("Xảy ra lỗi kết nối");
-    })
+    });
     // connect− Khi kết nối thành công
     // connecting− Khi clients đang kết nối
     // disconnect− Khi clients bị ngắt kết nối tới server

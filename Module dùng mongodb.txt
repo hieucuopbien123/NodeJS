@@ -27,7 +27,7 @@ Embedded Document giống như TableJoin trong SQL.
 -> Cài đặt:
 Để dùng phải cài MongoDB Server(server lưu data) và MongoDB Driver(để connect với server) bằng cách dùng module mongoose
 MongoDB Server có thể cài trực tiếp local or sử dụng MongoDB Cloud Server. Có nhiều trang cung cấp free như mLab,.. 
-Phổ biến nhất là cloud.mongodb.com:
+Phổ biến nhất là cloud.mongodb.com: chọn tạo shared cluster
 Sau khi tạo được cloud server thì cần vào deployment để connect trong 1 cluster -> vào network access mục security cột bên trái, thêm IP address máy của ta và chọn connect qua driver sẽ lấy được connection string để dùng trong ứng dụng => Do ta dùng IP động nên mỗi lần access phải cập nhập lại IP trên server or testing thường đặt chấp nhận mọi IP
 Chỉnh được loại project ở bên trên cột trái
 

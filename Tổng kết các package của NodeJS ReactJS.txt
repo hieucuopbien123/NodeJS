@@ -110,6 +110,7 @@ debug: package dùng hiển thị log và lỗi đẹp hơn trên browser và co
 
 connect-timeout: kiểm soát lỗi timeout khi 1 request từ client đến quá lâu thì trả lại lỗi cho client
 mongoose-sequence: plugin hỗ trợ autoincrement 1 trường nào đó khi tương tác với mongoose
+mongoose-paginate-v2 plugin hỗ trợ phân trang cho mongoose
 
 Backend dự án backend:
 express-rate-limit => giới hạn request cho 1 IP
@@ -131,4 +132,20 @@ faker => fake data => npm i faker@^5.1.0 --save-dev
 node-mocks-http => fake http request và response, thg dùng trong test
 supertest => testing http. Hoạt động với mọi test framework or test 1 mình k cùng framework nào cũng đươc
 coveralls, travis CI, github CI/CD: test, deploy trực tiếp chưa có tg
+daemon: 1 package biến script thành chương trình dạng daemon. 
 
+Ref tới "Module for project Tinkerbellgarden":
+connect-timeout
+express-rate-limit
+html-to-text
+http-status
+joi
+jsonwebtoken
+juice
+mongoose-paginate-v2
+mongoose-sequence
+paypal-rest-sdk
+validator
+voucher-code-generator
+eslint-config-airbnb-base 
+eslint-plugin-import

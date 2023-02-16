@@ -442,6 +442,7 @@ Module này hỗ trợ nhiều thứ trong đó có giao thức SMTP
 Khi truy cập vào gmail để gửi thông tin đi thì gmail sẽ chặn, để nodemailer hoạt động được thì:
 -Với tài khoản bth chỉ có 1 lớp bảo mật: ta phải bật quyền truy cập của ứng dụng kém an toàn của google account trong mục bảo mật
 -Với tài khoản xác minh 2 lớp(vd qua số đt nx): bảo mật -> App Password -> Sign in password -> SelectApp -> Other -> gõ tên mật khẩu -> sinh ra 1 password mới thay thế cho password hiện có để ứng dụng có tên đó truy cập vào đc gmail của ta, VD: nodemailer
+(https://myaccount.google.com/security)
 
 
 

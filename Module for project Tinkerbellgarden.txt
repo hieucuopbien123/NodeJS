@@ -9,7 +9,7 @@ Project Tinkerbellgarden: dựng server backend với mongodb chuẩn đầy đ�
 
 
 # Module dùng tool / # Tool pm2
-Trước pm2 ta chỉ cài cli và gõ command, nó có package dùng trực tiếp trong câu lệnh viết package.json được
+Trước pm2 ta chỉ cài cli và gõ command, h nó có package dùng trực tiếp trong câu lệnh viết package.json được
 
 Sinh file ecosystem tự động với: pm2 ecosystem
 Chạy pm2 nhưng kèm file ecosystem: pm2 start ecosystem.config.js
@@ -22,5 +22,4 @@ Các tiến trình daemon không thể bị gián đoạn và chỉ hoạt độ
 
 Nhiều tiến trình khi chạy phải thêm --no-daemon như câu lệnh pm2 start nên có. VD khi dùng với docker thì nên có vì nếu pm2 start index.json thì docker dừng luôn vì nó tưởng tiến trình đã kết thúc, chạy phát là dừng do nó ở trạng thái daemon và k có đầu vào nên k hoạt động.
 
-
-
+Mỗi khi chạy 1 ứng dụng nodejs, 1 tiến trình mới ra đời. Ta có thể gọi node index.js nhiều lần để chạy 1 server express nhiều lần thì là các tiến trình khác nhau. Pm2 giúp quản lý các tiến trình đó. Tắt 1 trong 2 tiến trình, tự động restart khi 1 tiến trình crash, hệ thống log dễ nhìn.
