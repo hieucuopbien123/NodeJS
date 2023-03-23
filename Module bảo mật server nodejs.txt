@@ -56,10 +56,38 @@ add_header Content-Security-Policy "default-src 'self'";
 VD: A vào diễn đàn của mình như thường lệ nhưng hôm đó B là 1 người muốn phá hủy 1 dự án mà A đang làm. B đăng tải 1 bài lên diễn đàn nhưng trong đó kèm theo 1 đoạn code kiểu: 
 <img height="0" width="0" src="http://www.webapp.com/project/1/destroy">
 => Giả sử dự án của A đang làm ở website http://www.webapp.com vừa đăng nhập và chưa đăng xuất. Tức là chỉ bằng việc xem bài viết của B, browser của A đã cố gắng load ảnh nhưng thực tế lại gửi câu lệnh destroy vào địa chỉ này để xóa project có id là 1. 
-Có nhiều biến thể khi mà dùng các thẻ có độ tinh vi cao hơn. VD hacker dùng 1 url rất mượt mà kiếu: <img height="0" width="0" src="http://www.ahackersite.com/abc.jpg"/> => xong cấu hình lại máy chủ: Redirect 302/abc.jpg http://www.webapp.com/project/1/destroy"/> thì người dùng k thể phát hiện ra được. Vấn đề này là phía người làm web cần phải xử lý
+Có nhiều biến thể khi mà dùng các thẻ có độ tinh vi cao hơn. VD hacker dùng 1 url rất mượt mà kiếu: <img height="0" width="0" src="http://www.ahackersite.com/abc.jpg"/> => xong cấu hình lại máy chủ: Redirect 302/abc.jpg http://www.webapp.com/project/1/destroy"/> thì người dùng k thể phát hiện ra được. Vấn đề này là phía người làm web cần phải xử lý.
+
+VD trên k đúng vì chả có ai để 1 url như v. Ta hiểu là người dùng luôn có thể bị đánh lừa thực hiện bất cứ request nào vào trang web nào từ 1 trang web khác. Có thể ngăn chặn với CORS or CSRF token.
+VD 1 form ẩn tạo request post đổi password của user trong trang http://bank.com/transfer.do:
+<form action="http://bank.com/transfer.do" method="POST">
+<input type="hidden" name="acct" value="MARIA"/>
+<input type="hidden" name="amount" value="100000"/>
+<input type="submit" value="View my pictures"/>
+</form>
+=> form này có thể được kích hoạt tự động bởi JS chứ k nhất thiết user phải click vào
+
+--> Chặn với CORS: 
+Thực tế CORS k chặn được mà chỉ cản website khác đọc dữ liệu website hiện tại nhưng CSRF thường k cần đọc mà nó thực hiện POST luôn và vẫn pass qua SOP được. Cách tốt nhất để cản CSRF là chứng minh được đúng request là đến từ frontend của nó bằng cách dùng CSRF token.
+
+--> Chặn bằng CSRF token:
+Giá trị token random cần duy nhất cho mỗi user session. 
+VD: web có 1 form mà người dùng vào đổi mật khẩu, gửi request để server update database. Server nhận request và check token rằng user đã login thì update email password. Biết được user đã đăng nhập website đó, attacker có thể lừa user submit cái form tương tự bằng cách ẩn khi click vào 1 image chẳng hạn. 
+Fix bằng cách: trong form có 1 trường hidden nữa là CRSF token. Khi người dùng vào page "Password Setting", họ sẽ nhận về 1 CSRF token do server gửi và frontend lưu nó vào trường input hidden kia. Khi người dùng submit, server check thêm cái token này để đảm bảo đúng là họ vừa vào page và bh gửi đi form. 
+Nếu attacker tạo 1 form tương tự sẽ fake form mới k có trường hidden kia. Họ k có cách nào lấy được giá trị trường hidden đó. 
+
+--> Chặn bằng SameSite option của cookie: Chỉ khi website dùng xác thực bằng cookie
+SameSite là attribute của cookie quyết định khi nào nên gửi cookie cùng 1 cross site. Có 3 giá trị:
+Strict: ngăn hoàn toàn việc gửi cookie trong mọi cross-site. Vd A đăng nhập rồi, xong vào website ở 1 link khác sẽ báo là chưa đăng nhập vì cookie k được gửi kèm
+Lax: Tương tự nhưng vẫn gửi được cross-site với request GET, request POST sẽ bị chặn => mặc định 
+None: 
+=> Vượt qua Lax bằng cách pop up website và thực hiện vẫn coi same site request. Khi ta thấy duyệt 1 site mà pop up lên 1 site khác và thông tin cá nhân bị đổi
+
+--> Double Submit Cookie:
+Người dùng vào thì gửi 1 random val lưu vào cookie -> các form trong web sẽ có hidden field gắn giá trị random đó -> thực hiện request sẽ check random val trong cookie với trong hidden field giống nhau là được
 
 -> Các kiểu khác
---> XSS ngăn chặn bằng thư viện validator check mail, xss-filter or DOMPurify
+--> XSS ngăn chặn bằng thư viện validator check mail, xss-filter or DOMPurify là từ input của người dùng
 --> Referrer-Poligy: "same-origin" sẽ kiểm soát có gửi kèm referer information không. Nếu chưa quyết định sẽ thiết lập là "same-origin"
 --> X-Permitted-Cross-Domain-Policies: none => thì các header liên quan tới Adobe Acrobat/FlashPlayer dùng cho cross domain request sẽ bị cấm. Trên các site k xử lý các file này, server sẽ đề xuất là: k cho phép toàn bộ các file policy. Tức là cấm cấm PDF và Flash document for cross-domain request.
 --> X-Download-Options: noopen => thiết lập này đi kèm với Content-Disposition: attachment khi người dùng download file về sẽ thiết lập là k mở file luôn.
