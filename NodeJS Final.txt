@@ -1,0 +1,15 @@
+-> NodeJS version mới: Quá nhiều package, thử tìm built-in package trước khi tìm npm
+Version 18: 
+Web Stream API tương tự các stream khác, cung khả năng đọc ghi pipe data của browser, như network socket và files.
+
+Version 19:
+node --watch index.js => thay thế nodemon luôn
+
+HTTP(s)/1.1 tự động có KeepAlive. HTTP là giao thức sử dụng TCP. Thay vì mỗi 1 request sẽ dùng 1 connection TCP mới, nó sẽ KeepAlive tái sử dụng connection đó trong 5s để tránh khởi tạo r đóng connection liên tục. Header KeepAlive tự động có cho mọi connection từ bên ngoài tương tác với NodeJS.
+Tab network browser -> right click vào tên column Initiator -> yêu cầu hiển thị Connection ID -> Sẽ thấy các request có cùng Connection ID là cùng dùng chung 1 TCP connection. Các domain khác nhau sẽ có ConnectionID khác nhau. Các request tới NodeJS server sẽ thấy chung ConnectionID vì dùng chung 1 TCP connection
+
+V8 engine giúp dùng được các JS API mới nhất.
+
+Version 20:
+Bảo mật tốt hơn vì dùng TLS 1.3
+Hỗ trợ Typescript trong NodeJS
