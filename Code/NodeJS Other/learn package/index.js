@@ -37,7 +37,7 @@ function savePost (post, cb) {
 // rất lâu thì nếu bị timeout giữa chừng thì k dừng được vc database update dù vẫn báo lỗi cho người dùng. Trừ khi có 1 
 // hàm nguyên tử đảm bảo update hàng loạt
 
-// # Dùng jwt
+// # Dùng jsonwebtoken
 var token = jwt.sign({ foo: 'bar' }, 'shhhhh');
 console.log(token); // Đã được hash
 

@@ -2,7 +2,8 @@
 // Dùng express 
 
 var express = require('express')
-var app = express()
+var app = express();
+const a = 1;
 
 // Tự setup header thuần với express
 app.use(function (req, res, next) {

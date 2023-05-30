@@ -483,7 +483,7 @@ Mỗi khi xóa hay làm gì trực tiếp trên database thì phải luôn luôn
 
 
 
-# Dùng jsonwebtoken:
+# Dùng jsonwebtoken
 => refer tới "Web3 lib / Sign message web3"
 
 
@@ -641,6 +641,9 @@ Backend: PHP, Python, NodeJS, Ruby on Rails, ASP.NET, DJANGO, Java(Spring)
 Database: (RDBMS) MsSQL, MySQL, Postgre / (No SQL) MongoDB, Cassandra, Elasticsearch, Redis, CouchDB / (Graph) Neo4J, ArangoDB / (Message Queues) Kafka, SQS, ZeroMQ, RabbitMQ / Oracle, Firebase
 DevOps: (Infrasstructure) AWS, Azure, NGINX / (Automation) Ansible, Chef, Jenkins / (Virtualization) Docker, BladeCenter, VMware, Vagrant, Kubernetes
 Android: (Android) Java, Kotlin, SDK / (iOS) Objective-C, Swift / (Cross platform) React Native, Ionic, Xamarin, Unity, PAW / Qt, QML
+
+-> Extension REST Client của VSC rất mạnh để test thay cho các tool như swagger hay POSTMAN
+Tạo file rest.http và viết api vào đó
 
 -> Tổng quan:
 # Chia cấu trúc thư mục

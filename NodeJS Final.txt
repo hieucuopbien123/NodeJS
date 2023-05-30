@@ -13,3 +13,37 @@ V8 engine giúp dùng được các JS API mới nhất.
 Version 20:
 Bảo mật tốt hơn vì dùng TLS 1.3
 Hỗ trợ Typescript trong NodeJS
+
+
+-> Debug trong nodejs:
+Chay: node --inspect index.js
+Thêm đúng option --inspect vào là xong, sau đó mở browser devtool của chrome lên sẽ thấy option nodejs (nếu k thấy thì gõ url socket ws vào thanh tìm kiếm sẽ hiện), click vào sẽ nhìn được console của nodejs trong browser. 
+
+Nếu bth console của terminal khó nhìn thì console của browser sẽ giúp nodejs nhìn rõ chi tiết mọi object. 
+Có thể tương tác trực tiếp in ra biến trong browser khi api chạy dừng ở breakpoint.
+Nó chỉ có tác dụng khi chạy 1 filejs tồn tại lâu. File js chạy phát tắt ngay thì k thể mở được devtool. Tức chỉ chạy được khi cho server lắng nghe cổng thôi
+
+Khi bật devtool connect debugger lên, console của nó sẽ đồng bộ với terminal của nodejs. Khi đó, Debugger và Console của browser khi đồng bộ sẽ chạy theo Console, chứ kp chạy lại và cũng kp chạy 2 ứng dụng độc lập. 
+Click đúp vào dòng nào trong tab Source để đặt breakpoint, khi call api sẽ dừng ngay tại đó, F10 đi tiếp. Còn đặt "debugger;" trong code thì devtool browser cũng hiểu nó là breakpoint và dừng ngay tại đó.
+Do ta bật app lên chạy quá nhanh nên nếu đặt debugger ở ngoài sẽ k bắt được vì nó chạy qua rồi, ta mới mở devtool lên. Khi file server chạy kết thúc, nó xóa hết các biến k dùng nên ta log các biến bên ngoài ra undefined => Do đó phải đặt breakpoint ở trong hàm API và thực hiện call tới mới thấy mọi thứ.
+
+
+-> NodeJS Other / BasicJwt
+Express server router handle error
+Connect mongoose
+Mã hóa bcrypt
+Joi
+JsonWebToken
+
+--> Mongodb có bản trả phí và bản free.
+Bản free có 2 bản: 1 là cluster trên atlas website, ta tạo db và config mọi thứ rồi lấy connection string; 2 là Mongodb compass, bản tải về.
+Khi tải compass về sẽ tự động chạy mongodb server và nó được thêm vào services trong administrator tools. Ta có thể tắt service này đi trong control panel. 
+Khi service này được bật, cổng 27017 sẽ được config cho connect của mongodb và có thể dùng đươc compass để connect vào. compass chỉ là 1 ứng dụng quản lý db bằng giao diện, chứ bản thân nó kp db thực (giống SMSS). Chỉ cần mongodb server chạy là ứng dụng hoạt động rồi, tắt hay disconnect compass thì db server vẫn chạy, vẫn có db bth. 
+
+Tên của connection lấy bằng this.name chính là phần đuôi sau url, mặc định k có gì sẽ là test. Tức từ db server, ta tạo ra các nhánh con chứa các cụm database bằng cách chia router như v. Compass muốn xem sẽ phải connect đúng url
+Sự kiện disconnected phát ra khi server tắt or client gọi conn.close để đóng connection. 
+
+Connect 1 db hoặc connect multi db cùng lúc
+
+--> Joi: giúp check validation các thứ như check email password người dùng gửi tới không null chẳng hạn. Nên dùng nó thay cho việc check thủ công
+
