@@ -1,11 +1,15 @@
-hNodeJS:
+NodeJS:
 NodeJS có thể làm server cho website SSR. Tương tự python hay java cũng có lib làm web, code giao diện cứ như React vậy và là SSR, sau cũng convert ra HTML/CSS mà thôi. Nó như nhau chỉ khác là dùng ngôn ngữ khác
+
+-> NodeJS dùng single thread kèm event loop xử lý bất đồng bộ. Tức mỗi connection tới server k cần tốn tg tạo ra 1 thread riêng để xử lý như PHP, tài nguyên cũng tiết kiệm hơn. Dùng V8 Engine có tốc độ nhanh nhất trong các JS Engine
+=> NodeJS cũng chỉ là 1 framework server bth, nếu so với các framework mạnh khác như .NET thì k thể nói là nhanh hơn được. Mỗi cái có 1 điểm mạnh riêng, .NET có hiệu năng cao hơn nhưng NodeJS lại nhẹ hơn. Nhiều người chọn NodeJS vì nó viết bằng JS và dễ code hơn thôi
 
 -> Console của client là trình duyệt F12, console của server là cmd chạy -> nếu lỗi xảy ra ở 1 trong 2 khi post/get thì sẽ dừng CT -> khi đó phải kiểm tra lỗi của cả server và client ở 2 nơi nhé, k thì tìm lỗi đến sang năm. 
 
 
 
 # Chia cấu trúc thư mục
+Chia chuẩn như nodejs boilerplate, với các dự án đơn giản k cần như v
 => refer tới "NodeJS Basic / Uploadimg cloudinary"
 
 
@@ -114,6 +118,7 @@ Dùng process.send trong nodejs có thể gửi data từ process con sang proce
 --> Dùng thư viện @rauschma/stringio: bổ trợ cho việc dùng child_process
 
 -> Dùng os: thư viện tương tác với libuv của C++ giúp tương tác với phần cưng
+Có thể tận dụng tối đa CPU cho server thông qua set giá trị biến môi trường process.env.UV_THREADPOOL_SIZE
 
 
 
@@ -171,6 +176,8 @@ Dùng clear: xóa terminal
 -> Dùng node-mocks-http: thư viện fake request và response http
 
 -> Dùng supertest: test nhanh http. Hoạt động với mọi test framework or test 1 mình k cùng framework nào cũng đươc
+
+-> Dùng apache benchmark: thư viện test cli rất mạnh
 
 
 
@@ -314,6 +321,9 @@ Bên cạnh đó ảnh ta cũng cần phải lọc request như thế nào k th�
 
 --> Dùng cloudinary với multer trực tiếp:...
 
+*** Multer chỉ dùng với form data, k bắt được ảnh từ body request. Ta có thể tự implement bắt bằng body request, khi đó sẽ phải tự convert ảnh r lưu các thứ, vấn đề sẽ là định dạng ta k bắt được, phải if else với từng loại png, jpg, webm => ref tới "Projects / Tinkerbellgarden / Test
+=> Dùng multer cho tiện
+
 
 
 # Dùng cors: custom các trường header quan trọng về bảo mật
@@ -378,10 +388,12 @@ ngrok muốn dùng phải có tk để nhận token => mặc định chỉ dùng
 -> Dùng localtunnel: package như ngrok nhưng nếu dùng trong code thì nó tiện hơn nhiều, chạy 1 cổng luôn và k cần 1 redis-server, 1 redis-client cồng kênh
 
 -> Dùng Joi: thư viện giúp xác định check type kiểu data của 1 object
+=> ref tới "Projects / BlogWeb"
 
 -> Dùng http-status: thư viện thao tác với các loại status http
 
 -> Dùng validator: giúp check có phải email hay không chẳng hạn, tập hợp các type check có sẵn
+=> Thư viện này cũng giúp santinize string để chống XSS
 
 -> Dùng express-flash + express-session: thư viện tạo flash message cho web nodejs
 
@@ -437,6 +449,7 @@ POST JSON file: curl -d "@data.json" -X POST http://localhost:3000/data
 
 # Dùng nodemailer
 Module này hỗ trợ nhiều thứ trong đó có giao thức SMTP
+=> refer tới "Projects / BlogWeb"
 
 -> Tạo app gửi mail trong nodejs, dùng code nodemailer bth:
 Khi truy cập vào gmail để gửi thông tin đi thì gmail sẽ chặn, để nodemailer hoạt động được thì:
@@ -485,11 +498,15 @@ Mỗi khi xóa hay làm gì trực tiếp trên database thì phải luôn luôn
 
 # Dùng jsonwebtoken
 => refer tới "Web3 lib / Sign message web3"
+=> refer tới "JSAdvance / Dùng jsonwebtoken"
+=> refer tới "Projects / BlogWeb"
 
 
 
 # Dùng socketio
 Bắt sự kiện qua lại với cả socket của client và server, broadcast, tạo namespace room.
+
+=> ref tới "Projects / BlogWeb"
 
 Socket.io là 1 module của nodejs giúp giao tiếp server client tức thì nhanh và chiếm ít tài nguyên. Nó đc phát triển để sử dụng các kết nối mở để giao tiếp thời gian thực. Cả máy khách và máy chủ đều tích hợp socket.io mới đc. Socketio khá giống websocket nhưng chiếm ít tài nguyên hơn. Socketio thường dùng cho các ứng dụng realtime như chat kênh, tạo phòng,.. Socket.io xây dựng dựa vào Engine.io, trước tiên khởi chạy long-polling để kết nối, sau đó dùng các phương thức giao tiếp khác tốt hơn giống như websocket. Nên khi code ta cứ bắn sự kiện qua lại thực chất là subscribe long-polling
 Ưu điểm: bảo mật, tự động kết nối lại, phát hiện ngắn kết nối, hỗ trợ mã hóa nhị phân, hỗ trợ tạo kênh và phòng.
@@ -545,11 +562,15 @@ Có 2 loại server nhanh có thể dùng trong NodeJS là json-server và lite-
 VD 1 file ảnh trong NodeJS ta có thể import or fetch được. Rất ảo là fetch của nodejs nó cho phép fetch cả data ở local nên 1 bức ảnh không không gọi là 1 server mà chỉ là 1 cách lấy ảnh khác mà thôi. Tương tự 1 file json mà ta có thể truy cập thông qua url trên trình duyệt gọi vào hệ thống file trong máy cũng k gọi là 1 server vì curl k thể gọi outside. Nhưng json-server chuẩn thì có nếu ta config router cho nó gọi được từ global internet:
 
 --> Json Server: cài -> cho watch; có thể tạo json-server qua các tool online trên mạng thì nó auto bật 24/24 luôn
+npm i json-server
 
---> Lite Server: cài -> viết file config -> cho run là được
+--> Lite Server: cài -> viết file config là bs-config.json -> cho run là được
 => Vc ta dùng file json làm server có yêu cầu là file json k được quá to vì server này kp là 1 máy chủ vật lý chuyên về lưu dữ liệu và lại còn lưu dạng file.
+npm i lite-server
 
-=> Tiêu chuẩn gọi là 1 serveer: handle được http request được call từ bên ngoài, data có thể được update vĩnh viễn khi xử lý request.
+=> Tiêu chuẩn gọi là 1 server: handle được http request được call từ bên ngoài, data có thể được update vĩnh viễn khi xử lý request.
+
+=> *** ref tới "Solidity / Solidity Other / LiteServer" và "Solidity / Tổng kết module / # Dùng liteserver"
 
 -> Tổng kết các cách lưu và lấy data ngay trong dự án, có thể or kp là 1 server: 
 2 loại server bên trên và các loại server khác như mssql nhưng có thể k cần phải mở chạy ở cổng nào mà chỉ cần fetch trực tiếp đến địa chỉ file json đó trong dự án. Cả browser còn mở được, có thể require file json trong nodejs or import file json trong javascript => nếu dùng server thực để fetch thì data có thể thay đổi, nếu dùng require import thì data reset sau mỗi lần chạy lại dự án
@@ -559,8 +580,11 @@ Lưu data vào file và dùng pp đọc ghi bình thường => data thay đổi 
 -> Tổng kết các cách fetch data bằng API, chứ kp là lấy data ở local import, fetch hay require:
 Commandline: curl, http
 Browser: fetch
-NodeJS: node-fetch, axios
+NodeJS: node-fetch, axios, v18 có sẵn
 React, html: axios, fetch webAPI
+
+-> Dùng node-fetch
+=> ref tới "Solidity Other / Dùng node-fetch"
 
 
 
@@ -624,6 +648,15 @@ nvm use 16.17.1 64 => dùng bản nodejs nào
 
 
 
+# Streaming server
+Streaming server thực tế cũng chỉ dùng http request bth. Chỉ cần đổi header và data trả về 1 chút là được.
+
+Thực tế với video, người ta có thể nhúng từ link youtube hoặc đăng lên ipfs hay cdn cloud thay vì dựng hẳn 1 server vì rất tốn, trừ các web chuyên về video phim
+
+Cơ chế: Người dùng click vào phần nào của video sẽ gửi http request nhận về 1 lượng bytes kể từ vị trí đó trở đi và cứ tiếp tục cho đến hết video. Về frontend, video player của html5 đã hỗ trợ sẵn việc gửi request http đi và xử lý response nhận về như nào rồi, server chỉ cần gửi lại đúng format response là được
+
+
+
 # Dùng redis
 # Dùng tool
 # Dùng mongodb
@@ -665,6 +698,7 @@ Tạo file rest.http và viết api vào đó
 -> Dùng crypto-js: thư viện giúp encrypt và decrypt văn bản
 -> Dùng cheerio: thư viện giúp parse DOM giống jQuery
 -> Dùng rimraf: thư viện hỗ trợ xóa file và thư mục. 
+-> Dùng bcrypt
 # Xử lý upload file
 ## Các module quan trọng phía server
 # Dùng express: tạo server backend
@@ -678,6 +712,16 @@ Tạo file rest.http và viết api vào đó
 # Dùng dotenv
 # Dùng jsonwebtoken
 # Các pattern
+# Backdoor
+# Các hàm thao tác tự tạo
+# Dùng nvm 
+# Streaming server
+# Dùng redis
+# Dùng tool
+# Dùng mongodb
+# Bảo mật đăng nhập
+# Bảo mật server nodejs
+# Module for project Tinkerbellgarden
 # Other
 
 

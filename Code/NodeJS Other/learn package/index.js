@@ -150,6 +150,12 @@ console.log(status.classes.SUCCESSFUL);
 var validator = require('validator');
 console.log(validator.isEmail('foo@bar.com')); // => true
 
+// # 1 số phương pháp bảo mật thông dụng / Dùng thư viện chống XSS
+let stringX = "\"><script>alert(1234);</script>";
+let sanitized_string = validator.escape(stringX);
+console.log(" \n The input string is: ", stringX);
+console.log("The sanitized string is: ", sanitized_string)
+
 // # Dùng express / Dùng express-rate-limit
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15p

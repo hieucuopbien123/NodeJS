@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const app = express();
+const { body } = require('express-validator');
 
 // # Bảo mật đăng nhập / # Dùng Express session
 
@@ -39,3 +40,12 @@ app.get('/destroy_session', (req, res) => {
     return res.status(200).json({status: 'success', session: 'cannot access session here'})
   })
 })
+
+// # 1 số phương pháp bảo mật thông dụng / Dùng thư viện chống XSS
+app.post('/testxss', body('text').escape(), (req, res) => {
+  res.send("The sanitized text is: " + req.body.text);
+},);
+// Send thử json là biết ngay:
+// {
+//   "text":"<script>alert(1337);</script>"
+// }

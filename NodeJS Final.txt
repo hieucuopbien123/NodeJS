@@ -15,7 +15,7 @@ Bảo mật tốt hơn vì dùng TLS 1.3
 Hỗ trợ Typescript trong NodeJS
 
 
--> Debug trong nodejs:
+-> Debug trong nodejs
 Chay: node --inspect index.js
 Thêm đúng option --inspect vào là xong, sau đó mở browser devtool của chrome lên sẽ thấy option nodejs (nếu k thấy thì gõ url socket ws vào thanh tìm kiếm sẽ hiện), click vào sẽ nhìn được console của nodejs trong browser. 
 
@@ -27,6 +27,20 @@ Khi bật devtool connect debugger lên, console của nó sẽ đồng bộ v�
 Click đúp vào dòng nào trong tab Source để đặt breakpoint, khi call api sẽ dừng ngay tại đó, F10 đi tiếp. Còn đặt "debugger;" trong code thì devtool browser cũng hiểu nó là breakpoint và dừng ngay tại đó.
 Do ta bật app lên chạy quá nhanh nên nếu đặt debugger ở ngoài sẽ k bắt được vì nó chạy qua rồi, ta mới mở devtool lên. Khi file server chạy kết thúc, nó xóa hết các biến k dùng nên ta log các biến bên ngoài ra undefined => Do đó phải đặt breakpoint ở trong hàm API và thực hiện call tới mới thấy mọi thứ.
 
+--> Package morgan: giúp log các request ra terminal
+
+--> Package debug: giúp log ở môi trường debug. Cách dùng:
+npm i debug
+const debug = require("debug")("myapp:server"); 
+debug("This is message");
+=> Tức dùng debug với namespace có tên là myapp:server, namespace có vai trò lọc và phân loại các dòng log debug
+
+Để dùng:
+Trong linux: "start": "DEBUG=app:* node app.js" or chạy terminal trực tiếp DEBUG=app:* node app.js
+Trong window: 
+cd vào thư mục -> set DEBUG=appmyapp:* => để cho debug trong môi trường nào rồi chạy bth. Làm như này sẽ set biến môi trường của window trong phạm vi thư mục đó
+
+
 
 -> NodeJS Other / BasicJwt
 Express server router handle error
@@ -34,6 +48,12 @@ Connect mongoose
 Mã hóa bcrypt
 Joi
 JsonWebToken
+redis
+module-alias
+
+User sign up -> gửi pass tới server -> server hash bằng bcrypt có salt -> lưu hash vào db
+User sign in -> gửi pass tới server -> server check bằng bcrypt -> server sinh ra jsonwebtoken từ user id có secret
+User request -> gửi accesstoken tới server -> server verify bằng jwt và secret lưu ở server ban đầu
 
 --> Mongodb có bản trả phí và bản free.
 Bản free có 2 bản: 1 là cluster trên atlas website, ta tạo db và config mọi thứ rồi lấy connection string; 2 là Mongodb compass, bản tải về.
@@ -46,4 +66,163 @@ Sự kiện disconnected phát ra khi server tắt or client gọi conn.close đ
 Connect 1 db hoặc connect multi db cùng lúc
 
 --> Joi: giúp check validation các thứ như check email password người dùng gửi tới không null chẳng hạn. Nên dùng nó thay cho việc check thủ công
+
+--> Mã hóa bcrypt:
+MD5 k còn được sử dụng vì mỗi string giống nhau cho đầu ra giống nhau, họ lưu lại 1 list các string thường dùng md5 và so sánh dịch ngược được hoặc máy đủ xịn sẽ phá được
+Thuật toán bcrypt sinh ra chuyên dùng để mã hóa mật khẩu. Bằng cơ chế thêm salt, string giống nhau mỗi lần mã hóa sẽ ra hash khác nhau. Đặc biệt là máy mã hóa và máy giải mã độc lập hoàn toàn => k rõ cơ chế như nào mà 
+Cái salt làm password khác nhau mỗi lần sinh ra, nhưng khi verify lại k cần cái salt nữa mà vẫn check được password ban đầu là đúng so với đoạn hash có salt về sau.
+
+Thực hiện mã hóa trước khi lưu vào db thông qua pre() của mongodb
+Thuật toán rất expensive, genSalt càng lớn sẽ càng chậm
+
+--> Sử dụng jsonwebtoken:
+Bth ta trả về {username, pasword} và password dưới dạng hash => nhưng k dùng gì cả. 
+Các request về sau đều phải gửi kèm password để server check hash ra đúng. K tốt với MITM attack.
+
+Jsonwebtoken trả lại 1 cái token gắn với mỗi user
+Các request về sau gửi lại kèm token đó để check. 
+=> Token này có vai trò giống password vì cho phép user truy cập vào ứng dụng. Nhưng điều đb là nó có hạn sử dụng nên nếu bị MITM, hacker cũng chỉ truy cập vào khi chưa expire thôi
+
+Jsonwebtoken không sinh ra token dựa vào password mà chỉ cần 1 thông tin duy nhất gắn với user như _id or username, kèm 1 secret key nữa là được. Nó sinh ra 1 mã hash duy nhất có hạn sử dụng gắn với user đó. Để tìm được accesstoken, phải có được secret key mà secret key này nằm ở phía server nên rất an toàn. 
+
+Để sinh secret key random an toàn: 
+- Dùng https://keygen.io/#fakeLink => web sinh đủ mọi loại key random an toàn
+- Cài npm i crypto --save => Viết generate_key.js sinh key an toàn
+
+Nhược điểm duy nhất của cơ chế đăng nhập này là lần đầu tiên, user luôn phải gửi password lộ tới server. Do đó nên gửi password ít thôi, như facebook ấy gửi đúng 1 lần, còn về sau phụ thuộc hết vào refresh token
+
+---> Refresh token kp 1 tính năng mới, nó cũng chỉ là 1 cái accesstoken nhưng có hạn lâu hơn thôi. Tức là client gửi refresh token lên thì server check nó còn hạn thì sinh 1 cái accesstoken gửi lại thôi mà.
+Mỗi lần lấy lại accesstoken, cũng sẽ lấy lại refresh token luôn. VD ta để refreshtoken 1 năm với các ứng dụng thường xuyên dùng, sẽ kbh hết hạn phải đăng nhập lại.
+
+--> Dùng redis lưu data
+redisv3 gọi createClient sẽ tự động connect, nhưng sang v4 phải chủ động gọi. Thành ra phải dùng async await hoặc promise, sẽ thay đổi cấu trúc code. Redisv4 cũng đổi rất nhiều cú pháp
+redis lưu được data kèm expire time nên rất phù hợp lưu token có hạn sử dụng. 
+
+Refresh token mỗi khi lấy lại accesstoken cũng sẽ lấy refresh token mới. Nếu lộ 1 refreshtoken là toang. Trong TH người dùng biết hệ thống bị hack và yêu cầu admin website vô hiệu hóa 1 refresh token => Ta có thể lưu tất cả refreshtoken vào database redis và check nếu refreshtoken k tồn tại trong redis (tức hết hạn) là bị expired. Nó cũng tương tự việc check bằng jsonwebtoken thôi nhưng điểm khác là ta có thể quản lý list các token trong database tùy ý, có thể thêm hay xóa token thoải mái.
+
+Chú ý dùng redis lưu refreshtoken kiểu: key là user id, value là refreshtoken. Điều này đồng nghĩa refreshtoken mới được lấy thì refreshtoken cũ tự k dùng được nữa. Ta có thể làm điều tương tự với accesstoken để disable accesstoken cũ khi accesstoken mới được sinh ra với cơ chế này.
+
+-> Giải quyết vấn đề setup bất đồng bộ và dừng ct:
+VD1: ta chạy node index.js có server listen bên trong (để k kết thúc ngay) và bên trong ta gọi throw luôn thì => mặc định ct sẽ tự kết thúc vì lỗi unexpected k được bắt
+Ta có thể ghi đè việc tự kết thúc bằng process.on("uncaughtException", unexpectedErrorHandler); Trong unexpectedErrorHandler phải có process.exit(0); vì nếu k có, chương trình k tự kết thúc nữa rồi
+Nếu v phải bắt đầy đủ các event lỗi của process là: unhandledRejection, uncaughtException, SIGTERM
+=> Trong thực tế, ta có thể override để tắt các connection tới database, socket or server các thứ nhưng trong thực tế, ta thường chỉ lập trình single process cho app nodejs. Nếu process tự tắt, nó cũng tự close các connection kia rồi. Và các công nghệ hiện đại đủ để tự xử lý khi 1 bên tự bị close, phía bên kia cũng tự hiểu điều đó mà ta k cần làm gì thêm.
+
+Vd2: như vd1 nhưng ta chạy nodemon là 1 công nghệ tự reload khi có sự thay đổi. Tức khi chạy nodemon, process nodemon sẽ chạy tiếp process cho file kia. Nên khi process file server throw error và dừng lại, process nodemon vẫn k dừng lại, nó vẫn chờ sự thay đổi để reload thôi.
+
+Trong nodejs ta muốn export biến client ở từng module trong 1 file và dùng nó ở bất cứ đâu trong hệ thống bằng require(), vd các biến query database chẳng hạn.
+Do đó, khi setup server ta muốn mọi thứ đồng bộ vì nếu thất bại ở 1 bước thì phải dừng ct luôn, nhưng các biến client phiên bản mới toàn dùng bất đồng bộ. VD ta chạy được server thành công nhưng connect database thất bại thì  thì rõ ràng vẫn nên tắt server đi, nhưng chạy bất đồng bộ k làm được.
+
+VD: server và database chạy bất đồng bộ. Server thành công nhưng database thất bại. Giả sử ta dùng async await để start database và dùng try catch bắt lỗi rồi in ra => in lỗi nhưng server vẫn chạy như bth.
+Có client dùng callback, event với on, async await tùy nên cách xử lý khác nhau.
+Thông thường khi client connect có lỗi sẽ tự throw error và k có try catch, sẽ in lỗi và dừng chương trình mặc định. Nếu client có event với on là đang override điều đó, nếu k tắt chương trình, có thể nó sẽ cố gắng reconnect lại và lại fail và in ra lỗi vô hạn.
+Ta có thể thêm try catch vào để xử lý thêm gì đó như đóng các services or gọi reconnect, nếu throw trong catch tiếp sẽ dừng ct vì k có gì bắt, nếu k throw thì ct sẽ chạy tiếp (là sai). Or gọi process.exit(0); cũng làm tắt ct.
+Ta có thể convert tất cả về async await. Khi đó chạy tuần tự await từng cái nhưng lại gặp vấn đề k export ra ngoài sử dụng được global, k nên truyền qua từng class. 
+Ta có thể sử dụng promise bth rằng cái này connect thành công thì .then(<connect tiếp cái sau); cũng k export được và rất cồng kềnh.
+Ta có thể chỉ dùng async await, mỗi api sẽ thực hiện await connect kèm try catch, ở cuối finally sẽ gọi disconnect là xong (tức export ra hàm connect). Mô hình này ta thấy trong các hệ thông lớn như company C# khi mà mỗi client tới đều truy cập tới database khác nhau. Với các hệ thống nhỏ, làm v sẽ tốn tài nguyên và thiết lập connection rất đắt, chỉ nên dùng khi hệ thống lớn kiểu mỗi client có 1 database riêng.
+Ta có thể chỉ gọi connect 1 lần lúc chạy server và dùng nó suốt ct khi mọi client đều dùng chung 1 database đó (export ra thẳng instance luôn). Trong TH có nhiều database, ta vẫn có thể chỉ dùng các connection khởi đầu mà k cần khởi tạo lại ở mỗi request. Khi đó nên quản lý nó ở các file riêng or quản lý bằng connetion poool, cũng cần đảm bảo server shutdown thì mọi connection phải tắt. 
+Ta có thể chạy start song song các services client bất đồng bộ ở từng file để có thể export ra, phải dùng async await để export được chứ promise chỉ thực hiện trong then. Xong 1 cái có lỗi thì ta báo ra. Ta có thể nhét ở từng file or chỉ export client, rồi import và gọi connect() trong hàm listen của server, nó như nhau vì đều là connect độc lập bất đồng bộ. 
+=> Thực tế, đây chỉ vấn là lúc startup server, nếu có lỗi startup, ta sẽ thấy ngay trên console và dễ dàng đóng chương trình và fix nên k cần thiết phải báo lỗi chuẩn 100%. Bug fix rất rõ, các thư viện connection đủ hiện đại để tự in và throw error khi có bug, tự đóng connection khi có bug hay ct tắt. Do đó ta k cần quá quan trọng đến việc in lỗi ntn
+=> Mục đích trên chỉ là để hiểu, thực tế ta đủ trình để tùy biến.
+
+=> Best practice trong TH 1 connetion tái sử dụng toàn app: Từng services cung instance đã await connect ở từng file riêng và import vào các router sử dụng thoải mái. 
+Phải xử lý khi có lỗi thì in ra và có throw error (là mặc định rồi, chú ý nhiều TH ta tự override event với on khiến nó éo dừng ct mà cứ tự reconnect trông đần vl, như redis chẳng hạn).
+K cần lo về lúc call api mà chưa complete connection vì hàm connect chạy rất nhanh lúc setup, nếu có lỗi ta thấy ngay lúc start server rồi. Chỉ khi dùng nó ngay sau khi gọi await connect chưa xong mới sai
+
+---> Giải quyết vấn đề của best practice: Kiến thức JS rất quan trọng
+1) Có TH ta gọi hàm async để gán giá trị cho biến và k chờ nó, sau đó ta export biến ra luôn => Chắc chắn case này gây lỗi vì khi export, nó sẽ copy state hiện tại của các biến đó luôn (khi chưa thực hiện xong await) và bị sai, các biến trong file k được export và nếu k được sử dụng ở ngoài thì sẽ bị xóa sau khi chạy xong.
+=> Để fix ta phải export 1 hàm trong file trả về biến đó, thì mỗi lần lấy sẽ gọi lại hàm lấy đúng giá trị. Biến đó có usecase dùng ở ngoài thông qua hàm nên k bị xóa
+
+2) Ta cần dùng 1 biến trong class, biến này cũng được gán qua 1 promise. Để export biến ra ngoài, ta export hàm getter để tránh sai như trên => ra null. Vc ta export ra 1 hàm trong class (hàm này trả ra 1 biến trong class), nó sẽ copy hàm đó, dù 1 thành phần trong class vẫn được sử dụng nhưng biến class k còn được sử dụng vẫn sẽ bị xóa, sẽ dẫn đến nó copy cả biến trong class kia luôn dù promise chưa hoàn thành việc gán.
+=> Để fix ta export cả biến class rồi tự gọi hàm setter là xong.
+=> Đó là các giải thích hơp lý nhất thôi.
+
+=> Các hàm async static của class chạy sẽ k có biến. Khi ta hay export cả class ra thì biến được init bởi async sẽ chưa hoàn thành và export ra k dùng được trong hàm static và bị sai. Kể cả ta tạo instance thì hàm static dùng biến init bởi async vẫn bị sai vì hàm static mà dùng biến không static sẽ copy ra ngay khi chưa await xong.
+
+3) => Thực tế, nhiều loại connection thành công xong để quá lâu, nó tự bị tắt, do đó cần phải khởi tạo ở mỗi request hoặc có hàm check disconnect thì connect lại nhưng như v hàm get đó sẽ async.
+VD: mysql2 có createConnection tự bị ngắt, chuyển sang createPool mới được 
+
+=> ref tới "Projects / BlogWeb"
+
+--> Chuyển về async await
+---> Hàm callback
+X(a, callback); => Khi hàm X thực hiện xong sẽ gọi vào callback ở cuối. Hàm callback thực hiện sẽ nhận vào giá trị xử lý từ hàm X. Hàm X thường là bất đồng bộ (ta có thể tạo hàm nhận callback là đồng bộ thoải mái) và kết quả chỉ được xử lý duy nhất trong hàm callback.
+=> Thường thì sẽ có phiên bản khác là async await. Vd: const x = await X(a);
+
+Nhưng nếu hàm callback mà là async thì sao, lúc này nó sẽ đi tiếp luôn và thực hiện song song hàm callback. Muốn ép nó chờ sẽ phải dùng Promise:
+const x = await new Promise((resolve, reject) => {
+  X(a, async (err, result) => {
+    if(err) reject(err);
+    resolve(result);
+  })
+})
+=> NN là vì promise sẽ kbh được coi là kết thúc nếu như cái cục cuối cùng của nó k gọi resolve or reject. Vd ta xóa resolve hay reject đi thì hàm promise này sẽ kbh kết thúc. Ta dựa vào nó để ép hàm này dùng được await.
+
+---> Promise chuyển sang async await rất dễ vì ta await được nó luôn và nó lấy ra giá trị trả về resolve or reject cuối cùng.
+await X().then();
+
+=> Trong callback vẫn phải check if(err), trong promise vẫn phải .then().catch, trong async await phải có try catch, nên khi chuyển sang async await, phải luôn nhớ try catch error. Tùy lib nó trả null mà k báo error thì phải check if(err) nữa. 
+Các cái có callback function kiểu (err, response) => {} thì chắc chắn throw error rồi, còn cái kiểu redis thì phải check if = null 
+
+=> Chú ý promise khi call resolve hay reject, nó vẫn chạy tiếp phần code bên dưới, do đó ta nên return để tránh nó đi tiếp
+
+---> Event với on
+Tương tự ta có thể biến thành Promise để dùng với async. Bằng cách cho resolve khi onsucess, reject với onerror:
+new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    resolve(reader.result);
+  };
+  reader.onerror = (error) => {
+    reject(error);
+  };
+  reader.readAsDataURL(file);
+});
+
+--> Dùng controller pattern
+
+--> Dùng package module-alias
+Package giúp loại bỏ việc viết .. và . trong relative url
+Cài -> Thêm url vào package.json -> require("module-alias/register") ở top của ứng dụng -> sử dụng bth
+
+
+
+-> Dùng mysql2
+mysql có thể cài qua xampp, dùng hosting có sẵn của myasp.net, tải thẳng mysql về or cài qua docker
+=> ref tới "Projects / BlogWeb" dùng async await 
+=> ref tới "NodeJS Final / Final" dùng callback
+
+--> Cài mysql qua docker
+docker pull mysql
+docker run --name testmyssql1.0.0 -p 3306:3306 -e MYSQL_ROOT_PASSWORD=passroot -d mysql --max_connections=1000
+=> chạy image mysql với max 1000 connections truy cập cùng lúc, password là passroot
+docker exec -it testmyssql1.0.0 bash => vào bash của mysql
+
+Vào bash:
+mysql => access denied vì user root cần password
+mysql -uroot -ppassroot => vào tương tác được với database mysql bằng cmd, nhập đúng username là root, password là passroot (nhớ tắt unikey)
+CREATE USER 'testuser'@'%' IDENTIFIED BY 'testpass'; => Tạo user mới là testuser với password là testpass
+create database aliconcon;
+GRANT ALL PRIVILEGES ON aliconcon.* TO 'testuser'@'%'; => grant cho testuser mọi quyền của database aliconcon
+FLUSH PRIVILEGES;
+show processlist; => xem các connection hiện tại đang kết nối vào database***
+show variables like "max_connections"; => xem max connection có thể có đồng thời vào database này, nếu quá sẽ báo lỗi
+
+Có thể connect mysql server với SQL Workbench, là 1 công cụ quản lý db được phát triển bởi MySQL AB là 1 phần của Oracle Corporation. Nó cung UI để quản lý db mysql, giống SMSS quản lý SQL Server thì cái này chuyên của MySQL => Dùng phpmyadmin của xampp để test dễ nhìn hơn hơn
+Tải MySQL Workbench -> Phải có MySQL Server trước mới connect được với UI -> Default Schema đặt là tên database, đặt username và password của user muốn đăng nhập, host 127.0.0.1 và port 3306 để connect vào bên mysql docker -> vào được database UI 
+
+--> Dùng package mysql2
+mysql2 cung các lệnh hỗ trợ bất đồng bộ tốt hơn bản mysql gốc: npm i mysql2
+
+Phân biệt dùng createConnection và createPool:
+- createConnection ra đời trước, mỗi lần gọi sẽ tạo ra 1 connection mới tới database (xem được với lệnh show processlist; trong sql cmd). Ta phải chủ động createconnection rồi đóng ở cuối API. 
+Ta k thể tạo 1 instance connection duy nhất dùng trong server vì nó cũng tự đóng sau 1 khoảng thời gian timeout, do đó user phải tự create và đóng ở mỗi request vì nếu k đóng, lần sau sẽ tạo connection mới và connection cũ k bị xóa. Nếu tắt server, mặc định mọi connection sẽ bị xóa
+=> Nếu có 1 lượng user lớn cùng query đồng thời sẽ rất nặng cho CPU server vì phải xử lý thêm việc đó.
+
+- createPool ra đời sau khắc phục vấn đề này. Chỉ cần gọi 1 lần createPool, nó sẽ tạo ra 1 list các connection tùy vào nhu cầu người dùng nhưng k được vượt quá max. Vd ta set max là 10 mà có 5 request độc lập tới db cùng lúc thì sẽ chỉ tạo 5 connection thôi, nếu có 20 requests cùng lúc thì sẽ tạo ra 10 connections truy xuất db xử lý 20 request đó. 
+Khi request thực hiện xong và ta đóng connection thì nó k thực sự xóa connection đi mà chuyển sang trạng thái sleep, khi có request tới, nó sẽ wakeup các connection đang sleep để tái sử dụng và truy cập tới db. 
+=> Chú ý hàm createPool chỉ gọi 1 lần, không phải api nào cũng gọi sẽ tạo ra liên tục các connection mới sẽ sai
+=> VD khi db set max 1000 connection đồng thời, ta dùng kiểu bth có thể bị overflow số lượng connection tới db khi có quá 1000 request tới db cùng lúc, nhưng dùng createPool sẽ kbh bị vì VD ở trên max luôn chỉ có 10 connections. Nhưng hiệu suất x2 so với createConnection bth nên đây là best practice. 
+
+
 

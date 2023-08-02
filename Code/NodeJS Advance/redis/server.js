@@ -41,8 +41,7 @@ app.get("/cached-users",async (req, res) => {
             if(response){
                 const users = response.data;
                 // Request chưa có trong cache thì query bth r lưu vào cache
-                // Hàm setEx thì key vẫn là đối dố 1, value là đối số thứ 3, nhưng thêm đối số 2 là timeout. Redis sẽ
-                // lưu cặp key value này trong khoảng giá trị timeout r tự bị xóa. setEx cx là hàm atomic 
+                // Hàm setEx thì key vẫn là đối dố 1, value là đối số thứ 3, nhưng thêm đối số 2 là timeout. Redis sẽ lưu cặp key value này trong khoảng giá trị timeout r tự bị xóa. setEx cx là hàm atomic 
                 redisClient.setEx(email, 600, JSON.stringify(users)); // Chỉ tồn tại trong 600s
                 console.log("User successfully retrieved from the API");
                 res.status(200).send(users); // Mặc định status tự xác định

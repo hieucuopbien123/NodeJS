@@ -26,10 +26,44 @@ Embedded Document giống như TableJoin trong SQL.
 
 -> Cài đặt:
 Để dùng phải cài MongoDB Server(server lưu data) và MongoDB Driver(để connect với server) bằng cách dùng module mongoose
-MongoDB Server có thể cài trực tiếp local or sử dụng MongoDB Cloud Server. Có nhiều trang cung cấp free như mLab,.. 
+
+--> MongoDB Server có thể cài trực tiếp local or sử dụng MongoDB Cloud Server. Có nhiều trang cung cấp free như mLab,.. 
 Phổ biến nhất là cloud.mongodb.com: chọn tạo shared cluster
 Sau khi tạo được cloud server thì cần vào deployment để connect trong 1 cluster -> vào network access mục security cột bên trái, thêm IP address máy của ta và chọn connect qua driver sẽ lấy được connection string để dùng trong ứng dụng => Do ta dùng IP động nên mỗi lần access phải cập nhập lại IP trên server or testing thường đặt chấp nhận mọi IP
 Chỉnh được loại project ở bên trên cột trái
+
+--> Cài bằng docker:
+docker pull mongo:latest
+docker run -d -p 2718:27017 -v ~/mongo-docker:/data/db --name mongo-test mongo:latest => Set thư mục mongo-docker ánh xạ thư mục lưu database mongo. Có config để set username password. Default là user root
+docker exec -it mongo-test bash
+mongosh => Từ version 6 trở đi phải dùng lệnh này để truy cập vào mongo cmd
+
+--> Backupdb:
+mongodump --port 2718 --db=test --out=backup/testBackup => nếu mongodb có password, phải thêm option VD -u "test_user" -p "test_password"
+mongorestore --port 27017 --db test backup/testBackup/test => Syntax: mongorestore --port 27017 -u "username" -p "password" --db your_db_name path_to_your_backup 
+
+--> Tạo replica: Tức chạy nhiều instance của mongodb, update 1 db sẽ tự update các db còn lại
+docker network create mongo-replica-network => muốn chạy nhiều instance tương tác với nhau, phải tạo 1 mạng
+docker run -d -p 27017:27017 --name mongo1 --net mongo-replica-network mongo --replSet "rs0"
+docker run -d -p 27018:27017 --name mongo2 --net mongo-replica-network mongo --replSet "rs0"
+docker run -d -p 27019:27017 --name mongo3 --net mongo-replica-network mongo --replSet "rs0"
+docker exec -it mongo1 bash
+mongosh => vào bash của mongo1
+rs.initiate()
+rs.add("mongo2:27017")
+rs.add("mongo3:27017") => thì mongo1 là primary db, mongo2 và mongo3 là secondary db trong replica set
+docker exec -it mongo2 bash
+db.getMongo().setReadPref('secondary') => Mặc định mongodb chỉ cho đọc từ primary node trong 1 replica set vì nó đảm bảo read và write sẽ luôn đồng bộ. Ta phải set lệnh này thì secondary db có thể read, nhưng sẽ có delay giữa write và read. Ở đây chỉ có primary mới được write
+
+---> Thao tác mongo cmd: Khác với SQL cmd
+show dbs
+use test => dùng db test
+db.user.insertOne({name: "anonystick"}) => điều đb là db tự tạo db và table tương ứng nếu chưa có
+Tương tự có insert(deprecated), insertmany, bulkWrite
+db.user.find() => show mọi data trong bảng user
+show tables / show collections => phải use 1 db đó mới được xem list table
+exit
+Use 1 database rồi gọi: db.dropDatabase() => xóa db đó
 
 -> Dùng express-mongo-santinize: package dùng cho express khi dùng mongodb có thể xử lý input tránh Injection
 

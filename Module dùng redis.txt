@@ -10,6 +10,7 @@ Redis và Memcached đều là kho lưu dữ liệu. Memcached là dịch vụ b
 
 # Basic
 Redis thg dùng như database lưu dữ liệu, bộ nhớ cache, message realtime
+Redis k thể thay thế các db như mysql vì nó k làm được nhiều thứ như: tính nhất quán, tính toàn vẹn (vì nó dễ hỏng hơn VD 3 TH break cache), nó k hỗ trợ truy vấn phức tạp qua table, nối các bảng hay bảo mật tốt cho cơ sở dữ liệu. 
 
 -> Toàn bộ data của Redis nằm trong bộ nhớ chính của máy chủ, trái với cơ sở dữ liệu thường lưu trên ô đĩa or SSD. K cần truy cập ổ đĩa nên có thể thao tác nhanh hơn. Cấu trúc dữ liệu linh hoạt, dùng ngôn ngữ kich bản Lua, lưu trữ lâu dài được trên ổ đĩa. 
 
@@ -19,11 +20,16 @@ Redis có thể nhớ đệm kết quả truy vấn, trang web, các đối tư�
 Ta có thể dùng luôn cloud redis như mongodb
 Redis k hỗ trợ chính thức trên window(kiểu ứng dụng rời) nên nếu muốn dùng phải chạy máy ảo linux trên window để chạy redis(WSL ubuntu trên window). Các bản dùng redis trên window trực tiếp đều là các bản unofficial k nên sử dụng => Ta có thể dùng docker chạy redis trên ubuntu container và ánh xạ vào cổng redis ở trong với công ở ngoài nhưng chạy docker trên window sida lắm.
 => docker run -p 6379:6379 -d --name redis-name redis:latest
-Lệnh chạy container sẽ tự thực hiện pull images nếu image đó k có nên như này phát là chạy được luôn
+Lệnh chạy container sẽ tự thực hiện pull images nếu image đó k có nên như này phát là chạy được luôn (sai)
 Đúng quy trình: docker pull redis -> docker run --name myredis -p 6379:6379 -d redis => dùng redis client bình thường tại công 6379
 => Nhưng docker trên window sida ta k thể attach được, muốn tương tác cmd phải tạo tiến trình mới: docker exec -it redis-name sh -> gõ ping thì nó bảo là k có nhưng cài nó bằng utils-ping thì nó lại lỗi, nên là ta mặc kệ chỉ cần biết nó chạy container ở cổng 6379, thế là có 1 server redis rồi, bh chỉ cần thao tác connect vào công đó là được => dùng docker với wsl trên window sẽ ok hết
 
--> Khi dùng redis buộc phải có 1 redis server được chạy trên 1 cổng. Vc ta dùng npm trong code nodejs hay cli đều chỉ tạo ra redis client thôi, muốn tương tác dùng được vẫn phải có 1 redis server, nếu k sẽ báo lỗi:
+-> Dùng redis (basic)
+Khi cache với redis có thể thấy tốc độ gần như tức thời kể từ lần request thứ 2 trở đi và các request này có thể lấy dù server mất kết nối với database. Còn vấn đề nếu 1 data thường xuyên bị thay đổi thì vc lưu cache có thể gây lỗi thì sao ? => Thật ra là fix được hết. Nếu data thay đổi chỉ trong vài giây thì tốt nhất cứ query bth, nhưng nếu data thay đổi lâu hơn thì vẫn có thể sửa lại redis cache lúc update được nên có thể đảm bảo dữ liệu get được luôn là mới nhất
+
+Cache data có thể tốn bộ nhớ để lưu thêm cache dù k nhiều mấy. Nếu data được cache chỉ dùng đúng 1 lần thì vc cache thậm chí còn gây chậm trễ cho ứng dụng. Phải đảm bảo cache xóa sau 1 khoảng thời gian cần thiết để tránh phí bộ nhớ. Data sử dụng nhiều thay đổi ít thì dùng cache
+
+Khi dùng redis buộc phải có 1 redis server được chạy trên 1 cổng như trên. Vc ta dùng npm trong code nodejs hay cli đều chỉ tạo ra redis client thôi, muốn tương tác dùng được vẫn phải có 1 redis server, nếu k sẽ báo lỗi:
 --> Cài package với npm: 
 npm install redis
 
@@ -35,37 +41,98 @@ npm install -g redis-cli -> mở bằng lệnh: rdcli
 
 => Để dùng: chạy redis server trên docker ở 1 cổng. Chạy redis client ở trong ứng dụng gọi vào cổng đó. Trong dự án thực tế, redis server và redis client ở 2 máy khác nhau và truyền url chứ kp 1 host nhưng khác port thế này
 
----> Lệnh:
-SET "kavin" 123 
-GET "kavin" => sẽ trả lại 123 cho ta
-ping => nhận lại PONG tức connect ok
+-> Dùng redis-commander: giúp quản lý redis bằng gui, luôn luôn nên dùng
+npm i -g redis-commander
+redis-commander 
+
+
+
+# Dùng redis-cli
+Là trình tương tác với server redis phía client bằng commandline
+
+-> Command: từng command trong redis đều atomic và đều có thể code được bằng js bth
+ping => nhận lại PONG tức connection ok
 KEYS * => nhận lại tất cả các key trong redis hiện tại
-SUBSCRIBE <tên channel>
-PUBLISH redisChat "This is a message"
-SETEX <key> <timeout> "<value>"
-TTL <key> -> lấy timeout
-GET <key> -> lấy giá trị
+
+PSUBSCRIBE o* => lắng nghe mọi thông điệp gửi tới channel có tên thỏa mãn pattern o* là bắt đầu bằng ký tự o
+SUBSCRIBE redisChat => tạo và lắng nghe thông điệp gửi đến channel tên là redisChat
+PUBLISH redisChat "This is a message" => gửi thông điệp tới channel redis tên là redisChat
+
+Dùng string:
+getrange mykey 0 -1 => lấy tòan bộ ký tự của key tên là mykey
+getrange mykey 0 3 => lấy ký tự từ 0 đến 3 của key tên là mykey (getrange mykey <start> <end>)
+SET "kavin" 123 
+GET "kavin" => sẽ trả lại 123 cho ta, k có trả ra null
+set foo bar ex 20 => sau 20s sẽ hết hạn và tự bị xóa khỏi redis
+mset key1 value1 key2 value2 => set multiple key-value
+mget key1 key2 => lấy multiple key
+strlen key1 => lấy length của 1 key
+incr/decr key1 => tăng giá trị key1 lên 1, chỉ được nếu key1 là 1 số int
+incrby/decrby key1 10 
+SETEX <key> <timeout> "<value>" => set kèm timeout
 SETNX <key> "<value>" => key k tồn tại thì set là value, nếu key tồn tại r thì thôi, tức là Set if Not eXist
 DEL <key>
 
--> Dùng redis
-Khi cache với redis có thể thấy tốc độ gần như tức thời kể từ lần request thứ 2 trở đi và các request này có thể lấy dù server mất kết nối với database. Còn vấn đề nếu 1 data thường xuyên bị thay đổi thì vc lưu cache có thể gây lỗi thì sao ? => Thật ra là fix được hết. Nếu data thay đổi chỉ trong vài giây thì tốt nhất cứ query bth, nhưng nếu data thay đổi lâu hơn thì vẫn có thể sửa lại redis cache lúc update được nên có thể đảm bảo dữ liệu get được luôn là mới nhất
+expire mykey 10 => set expire time cho 1 key có sẵn tên là mykey hết hạn sau 10s
+ttl mykey => hiện expire time của mykey
 
-Cache data có thể tốn bộ nhớ để lưu thêm cache dù k nhiều mấy. Nếu data được cache chỉ dùng đúng 1 lần thì vc cache thậm chí còn gây chậm trễ cho ứng dụng. Phải đảm bảo cache xóa sau 1 khoảng thời gian cần thiết để tránh phí bộ nhớ. Data sử dụng nhiều thay đổi ít thì dùng cache
+Dùng mảng:
+lpush players Ronadol => thêm 1 phần tử Ronadol vào mảng players, push sẽ lên đầu mảng
+lpushx movies abc => push phần tử tên là abc vào mảng movies nếu key movies tồn tại, nếu key movies k tồn tại thì k push
+lrange players 0 -1 => lấy toàn bộ phần tử trong mảng players
+rpush players Hello => push phần tử Hello vào cuối của mảng players
+llen players => lấy length của array
+lpop players => xóa phần tử đầu tiên trong mảng và trả về phần tử đó
+rpop players => xóa phần tử cuối cùng của players 
+lset players 0 Lingrad => thay thế phần tử đầu tiên số 0 của mảng thành Lingrad
+linsert players after Lingrad Martial => insert phần tử mới tên là Martial vào sau phần tử có giá trị là Lingrad trong mảng players, trả về số lượng phần tử mảng
+linsert players before Martial Greenwood => tương tự nhưng chèn vào trước phần tử nào
+lindex players 2 => lấy cụ thể 1 phần tử thứ 2 trong mảng (chú ý redis xếp mảng từ 1)
+sort players ALPHA => hiển thị mảng sort theo bảng chữ cái
+sort players desc ALPHA => ngược bảng chữ cái
 
+Dùng set (k có các phần tử trùng):
+sadd mykey myvalue1 myvalue2 myvalue3 => thêm 3 phần tử vào set
+smembers mykey => hiển thị set
+scard mykey => lấy số lượng phần tử set (card là cardinality)
+sismember mykey value1 => check phần tử value1 có trong tập mykey hay không
+sdiff mykey mykey2 => hiển thị phần tử tập mykey có mà mykey2 không có (phải đúng thứ tự)
+sdiffstore newset mykey mykey2 => lưu phần tử tập mykey có mà mykey2 không có vào 1 set mới tên là newset
+sinter mykey mykey2 => các phần tử chung của 2 set
+sinterstore newsetinter mykey mykey2 => lưu các phần tử chung 2 set và 1 set mới tên là newsetinter
+sunion mykey mykey2 => show union 2 set
+sunionstore newsetunion mykey mykey2 => lưu union 2 set vào 1 set mới tên là newsetunion
+
+Dùng hash set. VD cần lưu vào redis xem 1 user mua sản phẩm nào với số lượng bao nhiêu:
+hset cart:user-001 product:p-001 1 => lưu vào cặp [product:p-001, 1] vào bảng hash set tại key search là cart:user-001. Trong hệ thống thực tế, họ thường lưu kiểu cart:<userid> hay product:<productid> như v, nó chỉ lưu id vào cache còn sau đó query vào DB lấy data chi tiết sau. K nên lưu các thông tin hay đổi như name hay giá cả vì lưu xong nó giảm giá phát thì dữ liệu cache bị sai
+hgetall cart:user-001 => lấy mọi [field,val] của key search cart:user-001 (hay lấy mọi sản phẩm của user này)
+hincrby cart:user-001 product:p-001 => tăng val thêm 3, nếu muốn giảm thì dùng hincrby với số âm là được
+hmset cart:user-002 product:iPhone13 4 product:iPhone14 1 => add multi params
+hlen cart:user-002 => lấy length (lấy tổng loại mặt hàng của user)
+hdel cart:user-002 product:iPhone14 => xóa 1 field của key search nào
+
+Ứng dụng: trong shopee hay tiki, muốn thêm 1 sản phẩm vào giỏ hàng phải yêu cầu đăng nhập. Trong amazon, ta có thể thêm vào mà k yêu cầu đăng nhập, sau khi đăng nhập hay đk tài khoản mới, dữ liệu giỏ hàng đó sẽ tự đồng bộ, làm v thì số lượng request rất lớn và để đạt tốc độ tức thì như amazon, họ dùng mô hình như bên trên. Khi người dùng đặt giỏ hàng thì 1 id ảo được sinh ra, frontend lưu ngay vào cookie or storage, còn backend lưu vào cache or cookies or storage. Server có thể lưu vào DB nhưng tốc độ sẽ bị chậm hơn, lưu vào redis là tốt nhất vì các tính năng getall, tăng giảm số lượng có sẵn các hàm atomic r. Sau khi đăng nhập thì lưu data từ cache vào database thực là xong. 
+
+=> Chú ý mọi comment trong redis cli đều có dạng code tương ứng
 
 
 
 # 3 sự số cache: cache avalanche(sự cố tuyết lở), cache breakdown(sự cố sụp đổ), cache penetration(sự cố thâm nhập). 
--> Cache avalanche khi số lượng lớn dữ liệu hết hạn cùng lúc hay redis đột ngột chết. Hàng loạt các request cho các data hết hạn thực hiện cùng lúc vào database trực tiếp làm tăng lưu lượng request vào database đột ngột.
-Ta có thể fix: thêm 1 số ngẫu nhiên vào thời gian hết hạn của dữ liệu để đảm bảo nó k hết hạn cùng lúc.
-Ta có thể fix bằng mutex: Khi 1 người dùng truy cập data mà k có trong redis thì mutex sẽ đảm bảo chỉ 1 yêu cầu sẽ đọc từ database và cập nhập lên redis. Ta làm v với mọi request đọc từ database để mọi thứ ghi vào redis sẽ lần lượt và hết hạn cùng time sẽ lần lượt nhau chứ k dồn cùng 1 lúc. 
-Fix bằng cách cập nhập bộ nhớ cache trong background: tầm nửa đêm mấy ô sẽ tính toán xem dữ liệu nào được người dùng sử dụng nhiều vì tầm này ít người online. Mấy ô dev VN sẽ cho update lại cache or thường xuyên kiểm tra xem cache có hợp lệ không vì nhiều lúc hệ thống bị căng và loại bỏ giá trị chưa hết hạn vì v phải cập nhập lại ngay. Nếu k thì dữ liệu người dùng thu được sẽ là rỗng.
+-> Cache avalanche: Khi ta lưu data vào cache có thời hạn cho user lấy (để giảm tải cho db), nhưng bị số lượng lớn dữ liệu hết hạn cùng lúc hay redis đột ngột chết. Hàng loạt các request cho các data hết hạn thực hiện cùng lúc vào database trực tiếp làm tăng lưu lượng request vào database đột ngột.
+Vd: 1000 mã giảm giá trong redis đột ngột hết hạn, 10k người khác vào redis săn mã cùng lúc thì bị hết hạn đồng thời đổ vào cache, hoặc k hết hạn nhưng VPS hosting cache đột ngột bị hỏng làm cache sập cũng tương tự
+
+- Các data hot thì nên để never expire và refresh thường xuyên.
+- Ta có thể fix: thêm 1 số ngẫu nhiên vào thời gian hết hạn của dữ liệu để đảm bảo nó k hết hạn cùng lúc
+- Ta có thể fix bằng mutex: Khi 1 người dùng truy cập data mà k có trong redis thì mutex sẽ đảm bảo chỉ 1 yêu cầu sẽ đọc từ database và cập nhập lên redis. Ta làm v với mọi request đọc từ database để mọi thứ ghi vào redis sẽ lần lượt và hết hạn cùng time sẽ lần lượt nhau chứ k dồn cùng 1 lúc. 
+- Fix bằng cách cập nhập bộ nhớ cache trong background: tầm nửa đêm mấy ô sẽ tính toán xem dữ liệu nào được người dùng sử dụng nhiều vì tầm này ít người online. Mấy ô dev VN sẽ cho update lại cache Vd như xóa các data ít dùng or thường xuyên kiểm tra xem cache có hợp lệ không (để tránh bị lỗi sập cache or quá tải làm hỏng cache).
+- Fix bằng cách dùng 2 cache, cache1 có hạn, cache2 vô hạn để cache1 quá hạn thì lấy trong cache2 rồi lưu vào cache1 cho an toàn. Nhưng cache2 vô hạn thì quá nhiều nên buổi đêm lại phải check r xóa các data ít dùng đi để cho request thẳng vào DB. Họ có thể viết 1 tool check số lần truy cập cache để biết data nào ít truy cập thì xóa khỏi cache
 
 2) Cache breakdown: chỉ hơi khác cache avalanche 1 xíu. Là 1 cái hot key nào đó được truy cập cùng 1 lúc đồng thời quá nhiều lần làm cho cache bị breakdown. 1 lượng lớn concurrency request cùng truy cập vào 1 điểm sẽ break cache và chuyển hướng sang database làm hỏng.
-Fix bằng cách gạt cầu chì: khi đó cache trả ra giá trị rỗng đảm bảo người dùng nhận thông báo lỗi trực tiếp, giảm áp lực truy cập cơ sở dữ liệu và đảm bảo hệ thống vẫn chạy bình thường ở các khu vực khác. Khi đó request của người dùng k đến database nx. Đợi redis khắc phục thì lại khởi động lại. Vc gạt cầu chì là quyền giúp bảo vệ cơ sở dữ liệu, tất cả dịch vụ k thể hoạt động bình thường. Tuy nhiên nếu hệ thống ngưng hẳn có thể ảnh hưởng đến vấn đề kinh doanh nên ta có thể bật cơ chế giới hạn luồng để đảm bảo dù có 1 tỷ request tới database thì chỉ có 1 lượng vừa đủ chạy tới database thôi để xử lý, đống còn lại đưa vào hàng đợi or báo lỗi(lỗi đi chứ hàng đợi thì lâu quá họ thoát mẹ web r) để giảm tác động về kinh tế tới mức tối đa. Tức là thay vì sập hẳn hệ thống thì vẫn cho 1 lượng request từ từ qua chờ cho redis trở lại.
-PP gạt cầu chì chỉ là tạm thời, ta có thể dùng cache cluster có độ tin cậy cao của bộ nhớ cache redis bằng nhiều khung có sẵn như master-slave hay sentinel. VD setup replica cho mongodb chẳng hạn
-Các data hot thì nên để never expire và refresh thường xuyên.
+VD: 1 cái voucher giảm giá được 10 ngàn người săn cùng lúc. Đáng lẽ nó lưu trong cache thì k sao nhưng do 10k người cùng truy cập vào 1 điểm nên cache bị break thẳng luôn nên đổ vào DB MySQL, mà MySQL trụ được trung bình 2k request 1s dẫn đến quá tải CPU sập toàn hệ thống
+
+- Fix bằng cách gạt cầu chì: khi đó cache trả ra giá trị rỗng đảm bảo người dùng nhận thông báo lỗi trực tiếp, giảm áp lực truy cập cơ sở dữ liệu và đảm bảo hệ thống vẫn chạy bình thường ở các khu vực khác. Khi đó request của người dùng k đến database nx. Đợi redis khắc phục thì lại khởi động lại. Vc gạt cầu chì là quyền giúp bảo vệ cơ sở dữ liệu, tất cả dịch vụ k thể hoạt động bình thường. Tuy nhiên nếu hệ thống ngưng hẳn có thể ảnh hưởng đến vấn đề kinh doanh nên ta có thể bật cơ chế giới hạn luồng để đảm bảo dù có 1 tỷ request tới database thì chỉ có 1 lượng vừa đủ chạy tới database thôi để xử lý, đống còn lại đưa vào hàng đợi or báo lỗi(lỗi đi chứ hàng đợi thì lâu quá họ thoát mẹ web r) để giảm tác động về kinh tế tới mức tối đa. Tức là thay vì sập hẳn hệ thống thì vẫn cho 1 lượng request từ từ qua chờ cho redis trở lại.
+=> PP gạt cầu chì chỉ là tạm thời, ta có thể dùng cache cluster có độ tin cậy cao của bộ nhớ cache redis bằng nhiều khung có sẵn như master-slave hay sentinel. VD setup replica cho mongodb chẳng hạn thì ơ đây cache cũng có replica chứ kp mọi request đổ về 1 điểm
+
 Khi dùng redis thì request đầu tiên sẽ lâu hơn và chưa update database nên ta k thể để tất cả cùng gọi vào database được. VD 1000 request gọi cùng lúc thì ta dùng mutex lock request khi gọi vào database. request đầu tiên gọi xong thì lưu vào cache và unlock mutex, các request sau thấy cache có rồi sẽ k gọi vào database nx. Chứ nếu k request mất 1s cơ thì tất cả vào cùng lúc đều thấy cache chưa có mà gọi vào database hết thì bốc cức.
 Fix cụ thể bằng mutex:
 const getData = async get(key) => {
@@ -102,13 +169,14 @@ if(!value){ // neu khong
     }
 }
 return value;
-=> Ở đây set là 30s vì lâu quá lỡ may sau này database có đúng trường đó thì bỏ mịa. Hoặc khi update database trường mới, ta reset lại cache để tránh lỗi
+=> Ở đây set là 30s vì lâu quá lỡ may sau này database có đúng trường đó thì bỏ mịa. Hoặc mỗi khi update database trường mới, ta reset lại cache để tránh lỗi
 => Chuẩn hơn ta nghĩ là: request tới nếu k có trong cache thì gán null luôn -> xong request databse -> database k có thì thôi -> database có thì update cache giá trị đó thế vào giá trị null ban đầu.
+
 Redis còn dùng high-level bloom filter giống kiểu hash set để check 1 key có tồn tại trong set k. Nó dùng thuật toán của bloom filter như đã học trong blockchain để check nếu k tồn tại thì return, tồn tại thì lấy giá trị. Cái bloom filter này khả năng là nhanh nên có thể check được 1 lượng lớn request 1 lúc nên vc tạo nhiều request vào giá trị k tồn tại của redis k gây lag database. Đây là khi ta dùng redis làm database lưu dữ liệu luôn. Ít xảy ra vì họ thường dùng mongodb hay SQL để lưu database chính cơ.
 
 
 
-# Use case phiếu giảm giá tăng đột biến
+# Usecase phiếu giảm giá tăng đột biến
 => refer tới "NodeJS Other / usepackage"
 
 -> Dùng tool apache benchmark giúp tạo ra vô số request đồng thời để test usecase này
@@ -185,4 +253,41 @@ Từng transaction phải thực hiện trong 1 môi trường độc lập đ�
 4) Durability: đảm bảo 1 transaction thực thi thành công thì tất cả thay đổi phải được đồng bộ xuống database kể cả khi hệ thống lỗi or mất điện. Các transaction thành công mà chưa dược đồng bộ xuống database phải được đồng bộ khi hệ thống hoạt động trở lại. Commit data and Never lost. 
 
 => Nch là hầu hết các database hiện tại đều có các hàm hỗ trợ ACID
+
+
+
+# Mô hình tự hủy đơn hàng nếu chưa thanh toán quá N phút
+-> Dùng redis keyspace notification:
+URL: https://redis.io/docs/manual/keyspace-notifications/#:~:text=Keyspace%20notifications%20allow%20clients%20to,commands%20affecting%20a%20given%20key.
+
+Keyspace notification cho phép client subscribe vào channel để nhận các event đặc biệt của redis. Có bảng config các ký tự biểu thị các event đặc biệt nào muốn subscribe như: khi data hết hạn, hay khi 1 key mới được set,...
+
+Ý tưởng là đơn hàng của user được lưu trong redis, sau N phút k thanh toán sẽ hết hạn và bị xóa, sau đó ta bắt sự kiện hết hạn đó để xử lý thêm logic khác
+
+--> Thao tác cli
+- Mode này mặc định bị disable, phải bật lên với: rdcli config set notify-keyspace-events Ex
+Thì E là 1 key event, x là bắt sự kiện khi expire
+- Mở 1 terminal bắt sự kiện expire với: psubscribe __keyevent@0__:expired
+- Mở 1 terminal khác chạy: set orderId:123 123 EX 5 
+Để set 1 giá trị expire sau 5s, khi đó terminal đầu tiên sẽ bắt được
+
+--> Thao tác với code
+Chạy server nodejs nhận order và lưu vào DB và redis. Khi hết hạn thì redis sẽ tự bắt và perform update db
+
+Ta phải chạy ra 1 ứng dụng riêng để xử lý, vì client redis khi set config là notify-keyspace-events thì k dùng kèm các thao tác bth khác được
+redis version 4 bỏ các cái client.on("message", ()=>{}); rồi, ta phải downgrade xuống version 3 hoặc dùng cách khác
+Bing chat bản creative cho ra nhiều kết quả lạ mà chuẩn hơn
+
+pSubscribe giúp lắng nghe theo 1 pattern. VD: client.psubscribe('user:*');
+subscribe giúp lắng nghe 1 channel cụ thể nào. VD: client.subscribe('user:123');
+
+Khi làm db, ta nên hạn chế việc xóa data, mà chỉ nên đánh dấu là data k còn được dùng nữa thôi. 
+Ở case này có thể mở rộng bằng việc chạy thêm 1 ứng dụng nữa làm message queue, mỗi khi hết hạn ta add vào queue và tiến hành bất đồng bộ việc gửi mail báo cho user về đơn hàng đã hết hạn.
+
+
+
+# Triển khai microservices với redis pub sub
+# Vấn đề đồng bộ của redis
+=> ref tới "JSAdvance / # Microservices"
+
 

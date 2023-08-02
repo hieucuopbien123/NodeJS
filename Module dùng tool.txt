@@ -47,10 +47,25 @@ pm2 start <file.js> -i 4
 
 Có rất nhiều lệnh hay như: pm2 monit để monitor resource và CPU; pm2 status
 
-pm2 start/stop/restart/reload app-name
+pm2 start/stop/restart/reload app-name/id
+
+pm2 start index.js --watch => tự động reload khi có sự thay đổi (như kiểu thêm nodemon ấy)
+
+pm2 delete <app-name/id của process (id chứ kp pid)> sẽ xóa tất cả instance có name là gì or kill 1 process nào
 
 Có thể dùng file ecosystem.config.js để thiết lập cấu hình cho pm2
 => refer tới "Module for project Tinkerbellgarden"
+
+-> Dùng pm2:
+Khi dùng pm2 chạy server nodejs với 4 instance chẳng hạn. Nó tạo ra 1 process master primary lắng nghe ở cổng mà ta xác định trong file server, Vd 3002. Ta cũng có thể chạy với cổng xác định, VD:
+NODE_PORT=3002 pm2 start -i 1 app.js -> rồi trong file app.js lấy với process.env.NODE_PORT (thực chất là cung 1 biến env)
+Sau đó VD ta chạy 2 instance thì nó sinh ra 2 worker process để xử lý (nhưng chỉ có process master lắng nghe ở 1 cổng). 
+
+PM2 cung các tính năng:
+Giúp deploy dễ hơn
+Khi dùng nhiều CPU cores, PM2 sẽ tự tối ưu hóa bằng cách chạy mỗi process trên 1 core, dù chỉ là 1 instance server nghe trên 1 cổng nhưng process xử lý được tối ưu hóa chia cho nhiều core sẽ nhanh hơn. Nếu máy chỉ có 1 cores, việc chạy nhiều instance k có ích gì vì dùng chung core đó => có thể dùng nhiều core bằng code nodejs thuần. 
+Khi chạy nhiều instance (có lợi khi có nhiều CPU cores), PM2 tự dùng round robin để phân bố request cho các instance khác nhau.
+Khi server bị crash, pm2 sẽ auto restart nó, nên khi deploy lên sẽ kbh bị sập vì lỗi lạ, nodemon chỉ restart server khi có sự thay đổi chứ k giúp làm điều này. Tự động xem log với "pm2 log"
 
 
 
@@ -64,6 +79,7 @@ Có thể dùng file ecosystem.config.js để thiết lập cấu hình cho pm2
 # Dùng apache benchmark -> bỏ thôi, lỗi k cài được. Dùng autocannon thay thế
 npm i -g ab -> ab -n 200 -c 100 <http://localhost:5000/>
 => để cài được thì trong máy phải có python cài bản mới nhất và dev tool của C++ có thể tải thông qua VS Installer
+=> Hiện h bị lỗi node-gyp
 
 
 

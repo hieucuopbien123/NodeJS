@@ -31,6 +31,7 @@ app.get("/", (req, res) => {
     // thì tìm trong thư mục view => tìm tiếp view engine thì thấy pug -> dùng pug render form.pug thành html và gửi
 });
 
+// Nếu k gửi ảnh nó tự bỏ qua middleware multer, k cần phải lo
 app.post("/", upload.single("avatar"), (req, res) => {
     const { body, file } = req;
     console.log(file);

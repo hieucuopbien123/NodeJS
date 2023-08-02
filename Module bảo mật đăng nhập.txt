@@ -106,7 +106,7 @@ User vào bất cứ domain nào, nó đều redirect đến 1 authentication se
 Đã đăng nhập -> redirect về trang trước
 Chưa đăng nhập -> phải đăng nhập -> lưu lại nếu là sessionid, không thì thôi -> gửi lại cho client lưu và redirect về trang trước 
 
-Có nhiều cách triển khai SSL như OpenID Connect, Facebook Connect, SAML, Microsoft Account,...
+Có nhiều cách triển khai SSO như OpenID Connect, Facebook Connect, SAML, Microsoft Account,...
 Có thể kết hợp nhiều giải pháp bằng framework AuthO
 => Phù hợp với hệ thống phân tán. Giúp tích hợp SSO vào các ứng dụng đã có dễ dàng
 VD lấy Facebook Connect làm central authentication server thì nó redirect đi và lại như v. Vd game liên quân

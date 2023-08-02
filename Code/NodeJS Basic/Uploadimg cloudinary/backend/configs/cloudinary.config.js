@@ -10,7 +10,7 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
     cloudinary,
-    folder: "testimg", // folder chả có ý nghĩa gì
+    folder: "testimg", // folder lưu trong cloudinary
     allowedFormats: ['jpg', 'png'],
     filename: function (req, file, cb) { // Nhận request từ multer thì xử lý lưu filename như nào
         cb(null, file.originalname); 

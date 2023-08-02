@@ -1,4 +1,5 @@
 Bảo mật server nodejs
+=> ref tới "PHP / # Web Security"
 
 
 
@@ -91,5 +92,10 @@ Người dùng vào thì gửi 1 random val lưu vào cookie -> các form trong 
 --> Referrer-Poligy: "same-origin" sẽ kiểm soát có gửi kèm referer information không. Nếu chưa quyết định sẽ thiết lập là "same-origin"
 --> X-Permitted-Cross-Domain-Policies: none => thì các header liên quan tới Adobe Acrobat/FlashPlayer dùng cho cross domain request sẽ bị cấm. Trên các site k xử lý các file này, server sẽ đề xuất là: k cho phép toàn bộ các file policy. Tức là cấm cấm PDF và Flash document for cross-domain request.
 --> X-Download-Options: noopen => thiết lập này đi kèm với Content-Disposition: attachment khi người dùng download file về sẽ thiết lập là k mở file luôn.
+
+-> Dùng thư viện chống XSS: Bản chất là convert các ký hiệu tag html thành html entities
+validator là thư viện validate nhiều thứ như email,.. bao gồm santinize string
+xss là thư viện giúp santizize string chống xss, nó như 1 phần của lib validator, dùng giống hệt
+express-validator cung middleware chuyên dùng cho server express giúp santinize body của request 
 
 
