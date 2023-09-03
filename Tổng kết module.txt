@@ -179,6 +179,9 @@ Dùng clear: xóa terminal
 
 -> Dùng apache benchmark: thư viện test cli rất mạnh
 
+-> Dùng npm i colors: thư viện hàng đầu khi cần in màu console.log trong terminal cho dễ nhìn 
+URL: https://github.com/Marak/colors.js
+
 
 
 # Xử lý upload file

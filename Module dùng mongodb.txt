@@ -10,6 +10,8 @@ Mô hình lưu trữ khác với SQL và với các dữ liệu lớn, họ thư
 Kiến trúc MERN Stack nói về bộ MongoDB, ExpressJS, ReactJS, NodeJS. Nó là 1 biến thể của MEAN Stack(thay React bằng Angular).
 ReactJS <--> NodeJS[ExpressJS] <--> MongoDB
 
+=> ref tới "JSAdvance / Module MongoDB Pattern"
+
 
 
 # Basic
@@ -128,7 +130,7 @@ Cả 2 cái cùng tìm thấy cái _id: 0 thì 1 query thực hiện cái update
 
 
 # Other
--> Tổng kết:
+-> Tổng kết mongoose:
 Kết nối database server, tạo database và bắt sự kiện
 Thao tác với Schema SchemaTypes
 Thao tác với static function và methods
