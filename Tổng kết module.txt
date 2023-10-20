@@ -372,6 +372,8 @@ Cách 2 là sử dụng package: npm install cors thì setup nhiều thứ
 # Dùng compression
 -> Middleware giúp nén data lại trước khi gửi cho client. Dùng khi gặp vấn đề về kích thước quá lớn nhưng vi xử lý lại mạnh
 
+Lib compression trong Node.js giúp cải thiện hiệu suất của ứng dụng bằng cách giảm lượng dữ liệu cần truyền qua mạng, tốc độ sẽ nhanh hơn nhưng áp lực sẽ lên CPU. Ta nên dùng nó mọi lúc trừ khi CPU của server yếu và bị quá tải.
+
 
 
 # Các package khác liên quan tới server
@@ -648,6 +650,10 @@ Tải trên trang chủ -> Chạy lệnh:
 nvm install 16.17.1 64 => tải bản 16.17.1 của nodejs 64 bit
 nvm list => liệt kê các phiên bản nodejs có trong máy
 nvm use 16.17.1 64 => dùng bản nodejs nào
+
+nvm ls => list các phien bản
+
+Để update tool nvm: ta tải lại từ github về file setup.exe và chạy là mới là được
 
 
 

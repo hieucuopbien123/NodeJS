@@ -7,7 +7,7 @@ Bảo mật server nodejs
 # 1 số phương pháp bảo mật thông dụng
 -> Mã hóa dữ liệu truyền giữa máy khách và máy chủ với TLS, SSL: giúp chặn các cuộc tấn công kiểu MITM(man in the middle). MITM có thể thực hiện bằng nhiều cách qua Wifi, email, DNS, Port, STP,... 
 
-Khi dùng express ta có thể dùng SSL cho trang web. Nếu self sign thì ok nhưng browser vẫn báo k an toàn vì đấy là ta sign là ta chấp nhận tức ta tự chứng thực rằng trang web này đúng là do ta làm. Phải có SSL của CA thì mới chứng thực được rằng ta kp là lừa đảo. 
+Khi dùng express ta có thể dùng SSL cho trang web. Nếu self sign thì ok nhưng browser vẫn báo k an toàn vì đấy là ta sign là ta chấp nhận tức ta tự chứng thực rằng trang web này đúng là do ta làm. Phải có SSL của CA thì mới chứng thực được rằng ta kp là lừa đảo cho user khác biết.
 Có thể dùng Let's script để có SSL free trong vài tháng.
 => Sinh key và cert có hạn 365 ngày với: openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365
 
@@ -36,8 +36,8 @@ VD: lừa người dùng truy cập 1 website độc hại và 1 iframe vô hìn
 -> X-Content-Type-Options: nosniff => là header ngăn chặn rủi ro bảo mật loại MIME. Nó hướng dẫn trình duyệt đọc các loại MIME chỉ định trong tiêu đề và nếu header này trống thì trình duyệt sẽ tự hiển thị theo cách phù hợp nhất. Kiểu lấy data từ server về và check đúng type file mới cho dùng ấy
 Đầu tiên trình duyệt request 1 tập tin và server sẽ response 1 tệp với X-Content-Type header. Trình duyệt phân tích tệp này để lấy định dạng các file. Sau khi phân tích, trình duyệt sẽ so sánh kết quả được gửi bởi máy chủ và nếu k phù hợp, trình duyệt sẽ chỉ dùng định dạng đã xác định. VD: website cho phép người dùng tải lên 1 hình ảnh và xác nhận phân mở rộng là jpg và png nhưng tệp này lại chứa mã html độc hại. Nếu k đi kèm type thì như đã nói, trình duyệt tự động xác định type là html và thực thi là toang, nhưng khi check trường X-Content-Type của header và thấy khác với type của data nhận về thì nó chỉ thực hiện các type đã xđ chuẩn mà thôi. Ta set nosniff là thiết lập k kiểm tra
 
--> Content-Security-Policy ngăn chặn 1 loạt các cuộc tấn công bao gồm XSS, click jacking. package helmet của nodejs tự động xử lý 1 loạt các header bao gồm cái này. Nó cho quản trị viên kiểm soát website bằng cách hạn chế tài nguyên người dùng được phép tải trong web. Hầu hết các trình duyệt đều hỗ trợ CSP và có thể nó sẽ thay thế X-Frame-Options, X-XSS-Protection, là 2 cấu hình không được bật theo mặc định. Có 2 tham số dùng nhiều nhất là "default-src" tải mọi thứ từ 1 nguồn xác định và "script-src" chỉ tải các tập lệnh từ nguồn xác định. 
-VD1: Content-Security-Policy: script-src 'self' https://viblo.asia
+-> Content-Security-Policy ngăn chặn 1 loạt các cuộc tấn công bao gồm XSS, click jacking. package helmet của nodejs tự động xử lý 1 loạt các header bao gồm cái này. Nó cho quản trị viên kiểm soát website bằng cách xác định nguồn tài nguyên mà trang web của ta có thể tải và chạy như mã JS, ảnh, font chữ. Hầu hết các trình duyệt đều hỗ trợ CSP và có thể nó sẽ thay thế X-Frame-Options, X-XSS-Protection, là 2 cấu hình không được bật theo mặc định. Có 2 tham số dùng nhiều nhất là "default-src" tải mọi thứ từ 1 nguồn xác định và "script-src" chỉ tải các tập lệnh từ nguồn xác định. 
+VD1: Content-Security-Policy: script-src 'self' https://viblo.asia => Mã JS ở trang của ta và trang viblo.asia có thể tải và chạy trong web của ta. Bất kỳ script nào không đến từ nguồn hiện tại hoặc https://viblo.asia sẽ bị chặn và không được thực thi.
 VD2: const express = require('express');
 const helmet = require('helmet');
 const app = express();
@@ -86,12 +86,14 @@ None:
 => Vượt qua Lax bằng cách pop up website và thực hiện vẫn coi same site request. Khi ta thấy duyệt 1 site mà pop up lên 1 site khác và thông tin cá nhân bị đổi
 
 --> Double Submit Cookie:
-Người dùng vào thì gửi 1 random val lưu vào cookie -> các form trong web sẽ có hidden field gắn giá trị random đó -> thực hiện request sẽ check random val trong cookie với trong hidden field giống nhau là được
+Người dùng vào thì gửi 1 random val lưu vào cookie (tạo mới random) -> các form trong web sẽ có hidden field gắn giá trị random đó (k fix cứng) -> thực hiện request sẽ check random val trong cookie với trong hidden field giống nhau là được
+Nên nhớ thực hiện từ website khác vẫn pass qua được là có cookie random cũ đó nhưng các trường field sẽ k giống nên vẫn fail. Và webA call tới API webB thì nên nhớ dù gửi lại có cookie của webB thì vẫn k đọc được cookie đó là gì nên k thêm đúng trường như frontend chuẩn được.
+=> Đây mới là cách chuẩn
 
 -> Các kiểu khác
 --> XSS ngăn chặn bằng thư viện validator check mail, xss-filter or DOMPurify là từ input của người dùng
 --> Referrer-Poligy: "same-origin" sẽ kiểm soát có gửi kèm referer information không. Nếu chưa quyết định sẽ thiết lập là "same-origin"
---> X-Permitted-Cross-Domain-Policies: none => thì các header liên quan tới Adobe Acrobat/FlashPlayer dùng cho cross domain request sẽ bị cấm. Trên các site k xử lý các file này, server sẽ đề xuất là: k cho phép toàn bộ các file policy. Tức là cấm cấm PDF và Flash document for cross-domain request.
+--> X-Permitted-Cross-Domain-Policies: none => thì các header liên quan tới Adobe Acrobat/FlashPlayer dùng cho cross domain request sẽ bị cấm. Trên các site k xử lý các file này, server sẽ đề xuất là: k cho phép toàn bộ các file policy. Tức là cấm PDF và Flash document for cross-domain request.
 --> X-Download-Options: noopen => thiết lập này đi kèm với Content-Disposition: attachment khi người dùng download file về sẽ thiết lập là k mở file luôn.
 
 -> Dùng thư viện chống XSS: Bản chất là convert các ký hiệu tag html thành html entities

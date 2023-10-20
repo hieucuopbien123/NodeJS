@@ -45,6 +45,9 @@ npm install -g redis-cli -> mở bằng lệnh: rdcli
 npm i -g redis-commander
 redis-commander 
 
+-> Dùng ioredis
+1 thư viện khác để tương tác với redis rất mạnh dùng cho server
+
 
 
 # Dùng redis-cli

@@ -10,12 +10,11 @@ const compression = require("compression");
 
 var clear = require('clear');
 
-// Compression là 1 middleware nén data trước khi server gửi cho client. Level càng lớn thì compress càng mạnh nhưng
-// nếu lớn quá thì server sẽ phải xử lý nhiều và chậm hơn. Khuyến nghị để mức 6.
-// threshold với đơn vị là byte VD như ở dưới data phải lớn hơn 100kB thì mới thực hiện nén
-// filter là điều kiện khi nào thì nén. ở đây ta check nếu request của client ở phần header k có cái option x-no-compress
-// thì mới nén. VD ta có thể gửi 1 request có header này thì dù két quả lớn hơn 100KB thì server vẫn sẽ k nén
+// Compression là 1 middleware nén data trước khi server gửi cho client. Level càng lớn thì compress càng mạnh nhưng nếu lớn quá thì server sẽ phải xử lý nhiều và chậm hơn. Khuyến nghị để mức 6. 
+// Threshold với đơn vị là byte VD như ở dưới data phải lớn hơn 100kB thì mới thực hiện nén
+// Filter là điều kiện khi nào thì nén. ở đây ta check nếu request của client ở phần header k có cái option x-no-compress thì mới nén. VD ta có thể gửi 1 request có header này thì dù két quả lớn hơn 100KB thì server vẫn sẽ k nén
 // Những thứ khác đi kèm như pageHook là cái éo gì nó vẫn k nén
+// Để mặc định thì nó sẽ nén với mọi url
 app.use(compression({
     level: 6,
     threshold: 100 *1000,
