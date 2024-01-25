@@ -59,7 +59,7 @@ Quy trình: require và initialize nó, viết use cho passport, dùng authentic
 -> localStorage k an toàn
 Web dùng code JS bên thứ 3 VD có link đến bootstrap, jQuery, script tới "https://awesomejslibrary.com/minified.js",... Trong TH 1 thư viện bên thứ 3 bị hack và script minified.js bị đổi, nó có thể loop mọi data trong localStorage và gửi qua API để thu thập => hiếm xảy ra và thường được cảnh báo rất nhanh
 
-localStorage dùng rất dễ và chỉ dùng được ở phía client. SSR k buộc phải dùng cookie. K thể đặt expiration time nên access token luôn có sẵn expiration time rồi. 
+localStorage dùng rất dễ và chỉ dùng được ở phía client. SSR k buộc phải dùng cookie vì server có thể tương tác với cookies của người dùng. K thể đặt expiration time nên access token luôn có sẵn expiration time rồi. 
 
 -> Cookie an toàn hơn nhưng k đáng kể
 httpOnly cookie flag làm browser k đọc được cookie mà chỉ có thể send qua lại với server. VD k thể lấy với document.cookie
@@ -73,8 +73,12 @@ Cookie có thể đọc - ghi trực tiếp bởi server mà k cần có sự t�
 => Trong CSR, việc dùng cookie không đem lại nhiều lợi ích trong khi các frontend React hay Angular tự chống XSS rất tốt. Do đó CSR nên dùng localStorage, SSR nên dùng cookie, trừ khi có yêu cầu đặc biệt gì khác.
 
 -> Indexed DB
-Với các data k là string mà kiểu float, int, nên lưu ở phía client trong IndexedDB là 1 NoSQL DB. Nó như 1 db hoàn chỉnh ở phía client
-Bộ nhớ k giới hạn 5MB như localStorage, dùng khi cần lưu 1 lượng data lớn và global trong code
+Với các data kp string mà kiểu float, int, nên lưu ở phía client trong IndexedDB là 1 NoSQL DB. Nó như 1 db hoàn chỉnh ở phía client browser
+Bộ nhớ k giới hạn 5MB như localStorage, dùng khi cần lưu 1 lượng data lớn và global trong code. Lưu được file, blobs. High performance với indexed, hỗ trợ transactions.
+Thường 1 app chỉ tạo 1 db dù ta có thể tạo bnh db cũng đươc. Cũng phải tạo connection, tạo object, lưu và chờ như db bth.
+Nên dùng dạng async để tránh đang query db thì client browser bị blocking hay gì đó sẽ ảnh hưởng tới giao diện
+Chỉ dùng khi có nhu cầu lưu như localStorage nhưng lại muốn bộ nhớ lớn hơn 5MB
+
 
 
 

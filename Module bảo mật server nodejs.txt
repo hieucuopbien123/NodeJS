@@ -7,7 +7,7 @@ Bảo mật server nodejs
 # 1 số phương pháp bảo mật thông dụng
 -> Mã hóa dữ liệu truyền giữa máy khách và máy chủ với TLS, SSL: giúp chặn các cuộc tấn công kiểu MITM(man in the middle). MITM có thể thực hiện bằng nhiều cách qua Wifi, email, DNS, Port, STP,... 
 
-Khi dùng express ta có thể dùng SSL cho trang web. Nếu self sign thì ok nhưng browser vẫn báo k an toàn vì đấy là ta sign là ta chấp nhận tức ta tự chứng thực rằng trang web này đúng là do ta làm. Phải có SSL của CA thì mới chứng thực được rằng ta kp là lừa đảo cho user khác biết.
+Khi dùng express ta có thể dùng SSL cho trang web. Nếu self sign thì ok nhưng browser vẫn báo k an toàn vì đấy là ta sign là ta chấp nhận tức ta tự chứng thực rằng trang web này đúng là do ta làm và có mã hóa bằng chữ ký do ta cấp. Nhưng vẫn có nguy cơ sai nếu có người khác giả dạng signature trong self sig cert của ta, nên phải có SSL của CA thì mới chứng thực được rằng ta kp là lừa đảo cho user khác biết.
 Có thể dùng Let's script để có SSL free trong vài tháng.
 => Sinh key và cert có hạn 365 ngày với: openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365
 
@@ -16,8 +16,10 @@ Có thể dùng Let's script để có SSL free trong vài tháng.
 -> Bảo mật truyền tải nghiêm ngặt HTTP (HTTP Strict Transport Security - HSTS): 
 Nếu được đặt trong response header thì trình duyệt sẽ hiểu là nó chỉ nên giao tiếp bằng HTTPS thay vì HTTP với domain được chỉ định. VD ta thêm vào nodejs trước khi gửi đi:
 res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains'); Đối với giá trị này ta cần set lớn hơn thời hạn 1 năm (31,536,000 giây). Khi đã set thì phía server không thể xóa được thông tin setting đã được lưu 1 lần trên trình duyệt nên cần check kỹ rằng server k cần HTTP response mới dùng. 
+includeSubDomains là mọi domain con cũng dùng HTTPS
 
 Còn có preload là option các phần setting được ghi trên trình duyệt ngay trong lần đầu tiên cũng k sử dụng HTTP. Khi ta dùng option preload thì domain được đưa vào preload list. Danh sách preload này là các website được hardcoded vào trình duyệt Google Chrome chỉ giao tiếp được qua HTTPS. Chủ sở hữu trang web có thể gửi url của chúng để được đưa vào danh sách preload. List này được duy trì bởi google nhưng các trình duyệt khác cũng sử dụng được nó.
+VD: res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload'); => Option preload trong tiêu đề Strict-Transport-Security cho phép bạn yêu cầu trang web của mình được bao gồm trong danh sách preload HSTS của các trình duyệt. Điều này có nghĩa là trình duyệt sẽ biết để chỉ sử dụng HTTPS cho trang web của bạn, ngay cả khi đó là lần đầu tiên người dùng truy cập trang web.
 
 VD: nếu k kích hoạt HSTS thì nạn nhân kết nối wifi mở sẽ nằm trong sự kiểm soát của kẻ tấn công(giả sử dính man in the middle attack qua wifi). Nạn nhân vào 1 website qua HTTP sẽ cho phép attacker chặn request và đọc thông tin gửi lên server. 
 => Khi browser tương tác với server của ta gặp cái option bên trên này (tính cả subdomain) thì nó setup rằng trong vòng 31536000s tiếp theo nó chỉ được phép giao tiếp với domain server của ta bằng HTTPS. Ai làm giả domain or MITM sẽ bị chặn.
@@ -29,15 +31,21 @@ Cũng có thể xử lý khi request người dùng là http thì tự redirect 
 VD: res.setHeader("X-Frame-Options", "DENY");
 res.setHeader("X-Frame-Options", "SAMEORIGIN");
 res.setHeader("X-Frame-Options", "ALLOW-FROM https://example.com/");
-VD: lừa người dùng truy cập 1 website độc hại và 1 iframe vô hình được cài sẵn. Người dùng click vào iframe là thông tin bị đánh cắp gửi đến server khác.
+VD: lừa người dùng truy cập 1 website độc hại và 1 iframe vô hình được cài sẵn. Người dùng click vào iframe là thông tin bị đánh cắp gửi đến server khác. Set header này thì khi dùng 1 API với X-Frame-Options DENY, api này k thể được gọi từ 1 iframe
 
 -> X-XSS-Protection: "1; mode=block" => cách dùng tương tự. Cái header này kích hoạt bộ lọc XSS tích hợp trong các trình duyệt hiện đại. Nó có 4 chế độ là 0(bộ lọc XSS vô hiệu hóa), 1(kích hoạt và bảo vệ trang nếu phát hiện tấn công), 1;modeblock(kích hoạt và ngăn chặn hiển thị trang nếu phát hiện tấn công), 1;report="https://<url>" (kích hoạt và báo cáo vi phạm vào url nào khi phát hiện tấn công) => có thể kết hợp 1;mode-block;report="<url>"
 
+Header X-XSS-Protection: "1; mode=block" được sử dụng trong header của response, không phải request. Nếu một cuộc tấn công XSS đã được gửi tới server, thì việc server gửi lại header này không thể ngăn chặn cuộc tấn công. Tuy nhiên, mục đích của header này không phải là để bảo vệ server, mà là để bảo vệ người dùng cuối cùng - người đang sử dụng trình duyệt. Nếu trình duyệt hỗ trợ header này, nó có thể ngăn chặn cuộc tấn công XSS từ việc thực thi trong trình duyệt của người dùng. VD hacker gửi đoạn XSS lên browser -> server lưu db -> người dùng lấy về và thực hiện script đó của hacker trên browser của mình thì server gửi kèm header này sẽ khiến browser k thực hiện
+=> Hầu hết các header này đều do server gửi cho người dùng với cơ chế như v
+
+Tuy nhiên, cần lưu ý rằng header X-XSS-Protection đã bị lỗi thời và không còn được sử dụng rộng rãi nữa, vì các trình duyệt hiện đại đã có các biện pháp bảo vệ XSS mạnh mẽ hơn. Thay vào đó, bạn nên sử dụng các biện pháp bảo vệ khác như Content Security Policy (CSP).
+
 -> X-Content-Type-Options: nosniff => là header ngăn chặn rủi ro bảo mật loại MIME. Nó hướng dẫn trình duyệt đọc các loại MIME chỉ định trong tiêu đề và nếu header này trống thì trình duyệt sẽ tự hiển thị theo cách phù hợp nhất. Kiểu lấy data từ server về và check đúng type file mới cho dùng ấy
 Đầu tiên trình duyệt request 1 tập tin và server sẽ response 1 tệp với X-Content-Type header. Trình duyệt phân tích tệp này để lấy định dạng các file. Sau khi phân tích, trình duyệt sẽ so sánh kết quả được gửi bởi máy chủ và nếu k phù hợp, trình duyệt sẽ chỉ dùng định dạng đã xác định. VD: website cho phép người dùng tải lên 1 hình ảnh và xác nhận phân mở rộng là jpg và png nhưng tệp này lại chứa mã html độc hại. Nếu k đi kèm type thì như đã nói, trình duyệt tự động xác định type là html và thực thi là toang, nhưng khi check trường X-Content-Type của header và thấy khác với type của data nhận về thì nó chỉ thực hiện các type đã xđ chuẩn mà thôi. Ta set nosniff là thiết lập k kiểm tra
+Người dùng gửi exe trình duyệt -> server nhận lưu vào db -> người dùng request get lại -> server gửi lại type là png -> trình duyệt đọc exe như png nên k exec nên k sao
 
--> Content-Security-Policy ngăn chặn 1 loạt các cuộc tấn công bao gồm XSS, click jacking. package helmet của nodejs tự động xử lý 1 loạt các header bao gồm cái này. Nó cho quản trị viên kiểm soát website bằng cách xác định nguồn tài nguyên mà trang web của ta có thể tải và chạy như mã JS, ảnh, font chữ. Hầu hết các trình duyệt đều hỗ trợ CSP và có thể nó sẽ thay thế X-Frame-Options, X-XSS-Protection, là 2 cấu hình không được bật theo mặc định. Có 2 tham số dùng nhiều nhất là "default-src" tải mọi thứ từ 1 nguồn xác định và "script-src" chỉ tải các tập lệnh từ nguồn xác định. 
-VD1: Content-Security-Policy: script-src 'self' https://viblo.asia => Mã JS ở trang của ta và trang viblo.asia có thể tải và chạy trong web của ta. Bất kỳ script nào không đến từ nguồn hiện tại hoặc https://viblo.asia sẽ bị chặn và không được thực thi.
+-> Content-Security-Policy ngăn chặn 1 loạt các cuộc tấn công bao gồm XSS, click jacking. package helmet của nodejs tự động xử lý 1 loạt các header bao gồm cái này. Nó cho quản trị viên kiểm soát website bằng cách xác định nguồn tài nguyên mà trang web của ta có thể tải và chạy như mã JS, ảnh, font chữ. 1 header hiện đại thay thế rất nhiều header cũ, hầu hết các trình duyệt đều hỗ trợ CSP và có thể nó sẽ thay thế X-Frame-Options, X-XSS-Protection, là 2 cấu hình không được bật theo mặc định. Có 2 tham số dùng nhiều nhất là "default-src" tải mọi thứ từ 1 nguồn xác định và "script-src" chỉ tải các tập lệnh từ nguồn xác định. 
+VD1: Content-Security-Policy: script-src 'self' https://viblo.asia => Mã JS ở trang của ta và trang viblo.asia có thể tải và chạy trong web của ta. Bất kỳ script nào không đến từ nguồn hiện tại hoặc https://viblo.asia sẽ bị chặn và không được thực thi trong website của ta
 VD2: const express = require('express');
 const helmet = require('helmet');
 const app = express();
@@ -45,7 +53,7 @@ app.use(helmet())
 => Ta cũng có thể set header riêng lẻ với:
 app.use(helmet({
   frameguard: {
-    action: 'deny'
+    action: 'deny' // Từ chối tất cả các yêu cầu từ các frame hoặc iframe bên ngoài
   }
 }));
 1 số webserver thì bảo mật có thể set trong chính tệp config server VD ta set trong server nginx.conf:
@@ -54,10 +62,12 @@ add_header X-Content-Type-Options nosniff;
 add_header X-XSS-Protection 1;
 add_header Content-Security-Policy "default-src 'self'";
 
+=> Tức header này thay thế được các header khác nhưng nó vẫn chưa cản hoàn toàn hacker và vẫn yếu. VD: CSP không thể ngăn chặn tất cả các loại tấn công XSS đặc biệt là khi mã độc hại được chèn trực tiếp vào trang web của ta (được gọi là Stored XSS) vì nó đến từ server của ta, vãn cần X-XSS-Protection kích hoạt 1 bộ lọc. Tuy nhiên, CSP có thể giúp ngăn chặn một số loại tấn công XSS, như tấn công XSS dựa trên phản hồi (Reflected XSS) và tấn công XSS dựa trên DOM (DOM-based XSS). Khi đó các biện pháp xác thực validate đầu vào vẫn cần thiết ở server
+
 -> CSRF (Cross site request forgery) hay XSRF - Sea Surf - Session Riding là 1 vector đánh lừa trình duyệt thực hiện hành động không mong muốn trong ứng dụng người dùng đã đăng nhập, có thể buộc nạn nhân đổi mail, mật khẩu, chuyển tiền. Ngăn chặn với crurf. 
 VD: A vào diễn đàn của mình như thường lệ nhưng hôm đó B là 1 người muốn phá hủy 1 dự án mà A đang làm. B đăng tải 1 bài lên diễn đàn nhưng trong đó kèm theo 1 đoạn code kiểu: 
 <img height="0" width="0" src="http://www.webapp.com/project/1/destroy">
-=> Giả sử dự án của A đang làm ở website http://www.webapp.com vừa đăng nhập và chưa đăng xuất. Tức là chỉ bằng việc xem bài viết của B, browser của A đã cố gắng load ảnh nhưng thực tế lại gửi câu lệnh destroy vào địa chỉ này để xóa project có id là 1. 
+=> Giả sử dự án của A đang làm ở website http://www.webapp.com vừa đăng nhập và chưa đăng xuất. Tức là chỉ bằng việc xem bài viết của B, browser của A đã cố gắng load ảnh nhưng thực tế lại gửi câu lệnh destroy vào địa chỉ này để xóa project có id là 1. Access token hợp lệ vì người dùng đã đăng nhập vào r thì browser tự lấy access token trang đó
 Có nhiều biến thể khi mà dùng các thẻ có độ tinh vi cao hơn. VD hacker dùng 1 url rất mượt mà kiếu: <img height="0" width="0" src="http://www.ahackersite.com/abc.jpg"/> => xong cấu hình lại máy chủ: Redirect 302/abc.jpg http://www.webapp.com/project/1/destroy"/> thì người dùng k thể phát hiện ra được. Vấn đề này là phía người làm web cần phải xử lý.
 
 VD trên k đúng vì chả có ai để 1 url như v. Ta hiểu là người dùng luôn có thể bị đánh lừa thực hiện bất cứ request nào vào trang web nào từ 1 trang web khác. Có thể ngăn chặn với CORS or CSRF token.
@@ -76,7 +86,7 @@ Thực tế CORS k chặn được mà chỉ cản website khác đọc dữ li�
 Giá trị token random cần duy nhất cho mỗi user session. 
 VD: web có 1 form mà người dùng vào đổi mật khẩu, gửi request để server update database. Server nhận request và check token rằng user đã login thì update email password. Biết được user đã đăng nhập website đó, attacker có thể lừa user submit cái form tương tự bằng cách ẩn khi click vào 1 image chẳng hạn. 
 Fix bằng cách: trong form có 1 trường hidden nữa là CRSF token. Khi người dùng vào page "Password Setting", họ sẽ nhận về 1 CSRF token do server gửi và frontend lưu nó vào trường input hidden kia. Khi người dùng submit, server check thêm cái token này để đảm bảo đúng là họ vừa vào page và bh gửi đi form. 
-Nếu attacker tạo 1 form tương tự sẽ fake form mới k có trường hidden kia. Họ k có cách nào lấy được giá trị trường hidden đó. 
+Nếu attacker tạo 1 form tương tự sẽ fake form mới k có trường hidden kia. Họ k có cách nào lấy được giá trị trường hidden đó đang được lưu trong session hiện tại ở html của user.
 
 --> Chặn bằng SameSite option của cookie: Chỉ khi website dùng xác thực bằng cookie
 SameSite là attribute của cookie quyết định khi nào nên gửi cookie cùng 1 cross site. Có 3 giá trị:
@@ -87,13 +97,14 @@ None:
 
 --> Double Submit Cookie:
 Người dùng vào thì gửi 1 random val lưu vào cookie (tạo mới random) -> các form trong web sẽ có hidden field gắn giá trị random đó (k fix cứng) -> thực hiện request sẽ check random val trong cookie với trong hidden field giống nhau là được
-Nên nhớ thực hiện từ website khác vẫn pass qua được là có cookie random cũ đó nhưng các trường field sẽ k giống nên vẫn fail. Và webA call tới API webB thì nên nhớ dù gửi lại có cookie của webB thì vẫn k đọc được cookie đó là gì nên k thêm đúng trường như frontend chuẩn được.
+Nên nhớ thực hiện từ website khác vẫn pass qua được là có cookie random cũ đó nhưng các trường field sẽ k giống nên vẫn fail. Và webA call tới API webB thì nên nhớ dù gửi lại có cookie của webB thì vẫn k đọc được cookie đó là gì nên k thêm đúng trường như frontend chuẩn được. (Đừng để code frontend bị lộ)
 => Đây mới là cách chuẩn
 
 -> Các kiểu khác
 --> XSS ngăn chặn bằng thư viện validator check mail, xss-filter or DOMPurify là từ input của người dùng
---> Referrer-Poligy: "same-origin" sẽ kiểm soát có gửi kèm referer information không. Nếu chưa quyết định sẽ thiết lập là "same-origin"
---> X-Permitted-Cross-Domain-Policies: none => thì các header liên quan tới Adobe Acrobat/FlashPlayer dùng cho cross domain request sẽ bị cấm. Trên các site k xử lý các file này, server sẽ đề xuất là: k cho phép toàn bộ các file policy. Tức là cấm PDF và Flash document for cross-domain request.
+--> Header "Referrer-Policy: same-origin" được sử dụng để chỉ định rằng khi một trang web gửi một yêu cầu đến một tên miền khác, trình duyệt sẽ chỉ bao gồm thông tin về nguồn gốc của yêu cầu (referrer) nếu và chỉ nếu tên miền của trang gửi yêu cầu và tên miền của trang nhận yêu cầu là cùng một nguồn gốc (same-origin).
+Nói cách khác, khi header này được thiết lập, thông tin về nguồn gốc của yêu cầu sẽ chỉ được bao gồm nếu yêu cầu được gửi từ cùng một nguồn gốc (same-origin), ngăn chặn việc tiết lộ thông tin về nguồn gốc của yêu cầu khi trang web gửi yêu cầu đến các tên miền khác.
+--> X-Permitted-Cross-Domain-Policies: none => thì các header liên quan tới Adobe Acrobat/FlashPlayer dùng cho cross domain request sẽ bị cấm. Điều này có nghĩa là trình duyệt sẽ không thực hiện bất kỳ loại truy cập nào từ các tên miền khác, ngay cả khi chính sách cross-domain policy khác được thiết lập. Cấm PDF và Flash document for cross-domain request. Điều này cũng ảnh hưởng đến tính tương thích web của ta với các web khác.
 --> X-Download-Options: noopen => thiết lập này đi kèm với Content-Disposition: attachment khi người dùng download file về sẽ thiết lập là k mở file luôn.
 
 -> Dùng thư viện chống XSS: Bản chất là convert các ký hiệu tag html thành html entities

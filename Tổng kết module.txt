@@ -664,6 +664,8 @@ Thực tế với video, người ta có thể nhúng từ link youtube hoặc �
 
 Cơ chế: Người dùng click vào phần nào của video sẽ gửi http request nhận về 1 lượng bytes kể từ vị trí đó trở đi và cứ tiếp tục cho đến hết video. Về frontend, video player của html5 đã hỗ trợ sẵn việc gửi request http đi và xử lý response nhận về như nào rồi, server chỉ cần gửi lại đúng format response là được
 
+=> Cơ chế tính lượt view cho video không phải là số lần gọi request GET và cũng k yêu cầu phải lấy xem hết mọi bytes của video. VD 1 video dài 20p, người dùng gọi GET hết 10 mốc lúc 1p, 2p, 5p30s,... random thay đổi liên tục (tùy server custom) là tính 1 view. 
+
 
 
 # Dùng redis

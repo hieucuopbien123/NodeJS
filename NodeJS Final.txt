@@ -234,3 +234,26 @@ Dùng lib: apollo-server và graphql
 
 -> Dùng google api convert text to speech
 
+
+
+-> ***TK dùng cookie trong express:
+Client ---------Request----> Server
+Client <--Res + Set-Cookie-- Server
+Client ------Req + Cookie--> Server
+Client <-------Response----- Server
+
+K nên tự làm:
+res.setHeader("set-cookie", "username=hieu");
+req.headers.cookies;
+
+Dùng cookie-parser:
+req.cookies;
+res.cookie("username", "hieu", {
+  maxAge: 5000, // 5s sau là tự xóa, thg dùng hơn expires
+}).cookie("test", "abc", {
+  expires: new Date(Date.now() + 5000),
+  httpOnly: true,
+  secure: true // Chỉ gửi khi qua giao thức https
+})
+res.clearCookie("test");
+

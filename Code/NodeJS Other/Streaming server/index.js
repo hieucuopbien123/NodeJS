@@ -20,7 +20,7 @@ app.get("/video", function (req, res) {
   
   // Tính điểm bắt đầu và kết thúc byte gửi. Ở đây ta gửi lại 1MB mỗi request
   const CHUNK_SIZE = 10 ** 6;
-  const start = Number(range.replace(/\D/g, "")); // Chỉ lấy dạng số
+  const start = Number(range?.replace(/\D/g, "")); // Chỉ lấy dạng số
   const end = Math.min(start + CHUNK_SIZE, videoSize - 1); // byte tính từ 0 nên max là videoSize - 1
   const contentLength = end - start + 1;
 
